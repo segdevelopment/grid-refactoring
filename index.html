@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="stylesheet" href="./style-table.css" />
+
+    <script
+      src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver"
+      crossorigin="anonymous"
+    ></script>
+
+    <script
+      type="application/javascript"
+      src="https://unpkg.com/vue@2.6.10/dist/vue.min.js"
+    ></script>
+  </head>
+
+  <body>
+    <div id="app">
+        <form-table nome="pedidos" :fields="registros.colunas" :itens="registros.itens" :linhas="7" fn-row-selected="selecionarPedido" ></form-table>
+
+    </div>
+
+    <script type="text/x-template" id="form-table-template">
+        <div class="control-content-scroll">
+            <div class="table-component">
+                <table ref="tableComponent" tabindex="0">
+                    <transition name="fade">
+                        <div :class="['draggable-indicator', {hide: !draggable.showIndicator}]"></div>
+                    </transition>
+    
+                    <thead>
+                    <tr>
+                        <th v-for="(coluna, key) in colunas" :key="coluna.key" v-show="!coluna.hide" :key="coluna.key" :data-index="key" :data-name="coluna.key" @mousedown="handleSelectColumnStarted($event, key)" :class="[{'column-selected': coluna.selected && columnsSelected.hasSelection}, {'column-cuted': coluna.selected && draggable.started}, {left: coluna.selected && draggable.started && key === Math.min(...columnsSelected.indexes)}, {right: coluna.selected && draggable.started && key === Math.max(...columnsSelected.indexes)}, coluna.class]" :style="{width: coluna.width || 100 + 'px', minWidth: `${coluna.width || 100}px`}">
+                            <div :style="{justifyContent: key === 0 ? 'flex-end' : 'flex-start'}">
+                                <span>{{ coluna.label }}</span>
+                                <button tabindex="-1" :class="['handler-menu open-menu', {right: coluna.hideRight}]" @click="handleShowMenu($event, key)" :style="{right: key !== 0 && 10 + 'px', left: key === 0 && 10 + 'px'  }"><i></i></button>
+                                <button tabindex="-1" :class="[hoverActive(`${key}-left`), 'handler-menu show-column', {left: coluna.hideLeft}]" @mouseover="hover(key, 'left')" @mouseout="hoverEl = null" @click="handleShowColumn(key)" v-if="coluna.hideLeft"><i></i></button>
+                                <button tabindex="-1" :class="[hoverActive(`${key}-right`), 'handler-menu show-column', {right: coluna.hideRight}]" @mouseover="hover(key, 'right')" @mouseout="hoverEl = null" @click="handleShowColumn(key, true)" v-if="coluna.hideRight"><i></i></button>
+                                <button tabindex="-1" class="resize-column" :ref="`resize-${key}`" @mousedown="handleDownChangeSize($event, coluna, key)" v-if="paginate.currentPageContent?.length >= 1"></button>
+                            </div>
+    
+                            <transition name="fade">
+                                <ul class="dropdown-filter-menu" ref="menu" @mouseleave="menuShowIndex = null" v-show="menuShowIndex === key">
+                                    <li><span @click="orderBy('asc', coluna.key)">Ordernar A-Z</span></li>
+                                    <li><span @click="orderBy('desc', coluna.key)">Ordenar Z-A</span></li>
+                                    <li><span @click="removeOrderBy()" v-if="coluna.asc || coluna.desc">Remover ordenamento</span></li>
+                                    <li><span @click="handleHideColumn(key, coluna.key)">Ocultar coluna</span></li>
+                                    <li><span @click="filterColumn(coluna)">Filtrar</span></li>
+                                </ul>
+                            </transition>
+                        </th>
+                    </tr>
+                    </thead>
+    
+                    <tbody>
+                    <tr v-for="(item, indiceLinha) in customItems" :key="item" name="fade" :class="{selected: selectedRow.row === indiceLinha && selectedCell.initNavigation, 'customized-line-rendered': indiceLinha % 2 === 0}" is="transition-group">
+                        <td v-for="(coluna, indiceColuna) in colunas" v-show="!coluna.hide" :data-index="indiceColuna" :key="coluna.key" :style="{width: coluna.width || 100 + 'px', textAlign: indiceColuna === 0 ? 'right' : 'left'}" @click="clickNavigationListener($event)" :class="[{'selected-cell': indiceLinha == selectedCell.row && indiceColuna == selectedCell.column && selectedCell.initNavigation && !selectedRow.onlyRow}, {'customized-line-rendered': indiceLinha % 2 == 0}, {'column-selected': coluna.selected && columnsSelected.hasSelection}, {'column-cuted': coluna.selected && draggable.started}, {left: coluna.selected && draggable.started && indiceColuna === Math.min(...columnsSelected.indexes)}, {right: coluna.selected && draggable.started && indiceColuna === Math.max(...columnsSelected.indexes)}, coluna.class]">
+                            {{ coluna.formatter ? coluna.formatter(item[coluna.key]) : item[coluna.key] }}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="max-left-indicator"></div>
+    
+                <transition name="modal-fade">
+                    <div class="modal-backdrop-overlay" v-show="filter.opened">
+                        <div class="modal-filter-box" role="dialog" aria-labelledby="Filtro" aria-describedby="Filtro">
+                            <header class="modal-header">
+                                <p class="modal-title">Adicionar filtro</p>
+    
+                                <button type="button" @click="closeModalFilter" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </header>
+    
+                            <section class="modal-body" ref="modalFiltersBody">
+                                <ul class="unstyled" v-if="filter.opened">
+                                    <input class="styled-checkbox all" :id="`styled-checkbox-all`" type="checkbox" :value="'all'" :checked="filter.allChecked" @change="checkAll(true)"/>
+                                    <label :for="`styled-checkbox-all`">Todos</label>
+                                    <li v-for="(item, key) in filteredItems">
+                                        <input class="styled-checkbox" :id="`styled-checkbox-${key}`" type="checkbox" :value="toSlug(item.key)" @change="checkAll(false)" :checked="filter.allChecked || item.checked">
+                                        <label :for="`styled-checkbox-${key}`">{{ item.key }}</label>
+                                    </li>
+                                </ul>
+                            </section>
+    
+                            <footer class="modal-footer">
+                                <button type="button" class="btn-cancel" @click="closeModalFilter" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn-apply" @click="applyFilters">Aplicar</button>
+                            </footer>
+                        </div>
+                    </div>
+                </transition>
+    
+                <div class="paginate-container">
+                    <form-table-paginate v-show="table && paginate.pages > 1" @change-page="changePage" ref="paginateControlComponent" :paginate="paginate"/>
+                </div>
+            </div>
+        </div>
+    </script>
+    
+    <script type="text/x-template" id="form-table-paginate-template">
+        <div class="form-table-paginate" ref="paginateControl" v-if="!paginate.rightShow">
+            <ul>
+                <li :class="{disabled: !(paginate.active > 1 && paginate.pages > 1)}">
+                    <a tabindex="-1" @click="changePage(paginate.active, 'decrement')" href="#!">&laquo;</a>
+                </li>
+                <li :class="{active: paginate.active === page}" :key="page" v-for="page in paginate.pages">
+                    <a tabindex="-1" @click="changePage(page)" href="#!">{{ page }}</a>
+                </li>
+                <li :class="{disabled: !(paginate.pages > 1 && (paginate.pages !== paginate.active || paginate.active === 1))}">
+                    <a tabindex="-1" @click="changePage(paginate.active, 'increment')" href="#!">&raquo;</a>
+                </li>
+            </ul>
+        </div>
+    
+        <div class="form-table-paginate right-window" v-if="paginate.rightShow">
+            <ul>
+                <li :class="{disabled: !(paginate.active > 1 && paginate.pages > 1)}">
+                    <a tabindex="-1" @click="console.log(this.paginate)" href="#!">&laquo;</a>
+                </li>
+                <li :class="{active: paginate.active === page}" :key="page" v-for="page in paginate.pages">
+                    <a tabindex="-1" @click="changePage(page)" href="#!">{{ page }}</a>
+                </li>
+                <li :class="{disabled: !(paginate.pages > 1 && (paginate.pages !== paginate.active || paginate.active === 1))}">
+                    <a tabindex="-1" @click="changePage(paginate.active, 'increment')" href="#!">&raquo;</a>
+                </li>
+            </ul>
+        </div>
+    </script>
+
+    <script type="application/javascript" src="./app.js"></script>
+  </body>
+</html>
