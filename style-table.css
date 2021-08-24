@@ -7,8 +7,7 @@ div.control-content-scroll .table-component td.selected-cell {
 }
 
 div.control-content-scroll {
-    max-width: 100%;
-    width: max-content;
+    width: calc(100%);
     position: relative;
     display: block;
     clear: both;
@@ -20,6 +19,7 @@ div.control-content-scroll {
 }
 
 .table-component table {
+    width: calc(100%);
     position: relative;
     overflow: auto !important;
     display: block;
@@ -628,4 +628,24 @@ form-table-paginate.form-table-paginate.right-window {
 
 .form-table-paginate ul li.disabled {
     visibility: hidden;
+}
+
+
+.form-table-div-table{
+}
+.form-table-div-row-header {
+    display: flex;
+    justify-content: space-between;
+}
+.form-table-div-header {
+    width: 100%;
+    padding: 0 2px;
+}
+.form-table-div-row-body {
+    display: flex;
+    justify-content: space-between;
+}
+.form-table-div-content {
+    width: 100%;
+    padding: 0 2px;
 }
