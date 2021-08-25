@@ -1,4 +1,4 @@
-div.control-content-scroll .table-component td.selected-cell {
+div.control-content-scroll .table-component .form-table-div-content.selected-cell {
     background-color: rgb(10, 94, 107) !important;
     color: #fff;
     box-shadow: 0 0 4px rgba(0,0,0,.50);
@@ -18,7 +18,7 @@ div.control-content-scroll {
     display: block;
 }
 
-.table-component table {
+.table-component .form-table-div-table {
     width: calc(100%);
     position: relative;
     overflow: auto !important;
@@ -31,12 +31,12 @@ div.control-content-scroll {
     /* scroll-behavior: smooth; */
 }
 
-.table-component table:focus {
+.table-component .form-table-div-table:focus {
     outline: 2px solid #000;
 }
 
-.table-component td,
-.table-component th {
+.table-component .form-table-div-content,
+.table-component .form-table-div-header {
     margin: 0;
     user-select: none;
 }
@@ -57,8 +57,8 @@ div.control-content-scroll {
     flex: 1 1 auto;
 }
 
-.table-component thead th/* ,
-.table-component tfoot th */ {
+.table-component .form-table-div-row-header .form-table-div-header /* ,
+.table-component tfoot .form-table-div-header */ {
     color: #000;
     height: 40px;
     line-height: 2;
@@ -78,14 +78,14 @@ div.control-content-scroll {
     cursor: -webkit-grab;
 }
 
-.table-component table:active,
-.table-component thead:active {
+.table-component .form-table-div-content:active,
+.table-component .form-table-div-row-header:active {
     cursor: grabbing;
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
 }
 
-.table-component tbody td {
+.table-component .form-table-div-row-body .form-table-div-content {
     padding: 0 0.8em;
     color: #000;
     --rectangleWidth: 100%;
@@ -100,23 +100,23 @@ div.control-content-scroll {
     box-sizing: border-box;
 }
 
-.table-component tbody tr:not(:last-child) td {
+.table-component .form-table-div-row-body .form-table-div-row-body:not(:last-child) .form-table-div-content {
     border-bottom: 1px solid #17284e20;
 }
 
-.table-component tbody {
+.table-component .form-table-div-row-body {
     cursor: default !important;
 }
 
-.table-component tbody tr.selected td {
+.table-component .form-table-div-row-body .form-table-div-row-body.selected .form-table-div-content {
     background: rgb(190, 229, 235) !important ;
 }
 
-.table-component tbody tr:not(.selected):hover td {
+.table-component .form-table-div-row-body .form-table-div-row-body:not(.selected):hover .form-table-div-content {
     background: rgba(0,0,0,.09);
 }
 
-.table-component tbody tr.customized-line-rendered td {
+.table-component .form-table-div-row-body .form-table-div-row-body.customized-line-rendered .form-table-div-content {
     background-color: rgba(0,0,0,.05);
 }
 
@@ -175,18 +175,18 @@ div.control-content-scroll {
     transition: opacity 0.5s ease;
 }
 
-.table-component th .resize-column:hover {
+.table-component .form-table-div-header .resize-column:hover {
     opacity: 1;
 }
 
-.table-component th .resize-column.dragged {
+.table-component .form-table-div-header .resize-column.dragged {
     opacity: 1 !important;
     position: fixed !important;
     z-index: 8;
     /* top: 9px !important; */
 }
 
-.table-component th .resize-column.dragged:after {
+.table-component .form-table-div-header .resize-column.dragged:after {
     content: "";
     display: block;
     height: var(--dragHeaderHeight);
@@ -196,25 +196,25 @@ div.control-content-scroll {
     border: 1px dashed #7d8ba5 !important;
 }
 
-.table-component th.column-selected .resize-column:hover {
+.table-component .form-table-div-header.column-selected .resize-column:hover {
     opacity: 1;
     background-color: #ddd;
 }
 
-.table-component th.column-selected .resize-column.dragged {
+.table-component .form-table-div-header.column-selected .resize-column.dragged {
     opacity: 1 !important;
     background-color: #ddd;
 }
 
-.table-component th.column-selected .resize-column.dragged:after {
+.table-component .form-table-div-header.column-selected .resize-column.dragged:after {
     border: 1px dashed #ddd;
 }
 
-.table-component th > div {
+.table-component .form-table-div-header > div {
     display: flex;
 }
 
-.table-component th > div span {
+.table-component .form-table-div-header > div span {
     pointer-events: none;
     user-select: none;
 }
@@ -245,7 +245,7 @@ div.control-content-scroll {
     display: none;
 }
 
-.table-component th:hover button.handler-menu.open-menu {
+.table-component .form-table-div-header:hover button.handler-menu.open-menu {
     display: flex;
 }
 
@@ -293,12 +293,12 @@ div.control-content-scroll {
     transform: rotate(-90deg);
 }
 
-.table-component th.column-selected {
+.table-component .form-table-div-header.column-selected {
     background-color: rgb(10, 94, 107);
     color: #fff;
 }
 
-.table-component td.column-selected {
+.table-component .form-table-div-content.column-selected {
     background-color: rgb(190, 229, 235) !important;
 }
 

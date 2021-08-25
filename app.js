@@ -80,6 +80,16 @@ Vue.component("form-table", {
       const {hideRows} = this.filter;
       let items = (this.itens || []).slice();
 
+      let k = this.fields.map(i => Object.defineProperty({}, i.key, { value: this.itens.filter((j, k) => k < 10).map(j => j[i.key] || '').map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
+     
+      let prop = k.map(a => Object.getOwnPropertyNames(a)[0])
+      let total = k.map((o, i) => o[prop[i]]).reduce((a, c) =>  a + c, 0)
+      let columnsSize = []
+      
+      prop.map((o, i) => columnsSize[o] = parseFloat(((k[i][o] / total) * 100).toFixed(1))).reduce( (a, i) => a + i)
+
+      console.log(k, prop, total, columnsSize, prop.map((o, i) => columnsSize[o] = parseFloat(((k[i][o] / total) * 100).toFixed(1))).reduce( (a, i) => a + i))
+
       if (Object.keys(hideRows).length) {
         items = items.filter((item) => {
           return (Object.keys(item).findIndex(key => hideRows[key] && hideRows[key].includes(this.toSlug(item[key]))) < 0);
@@ -1312,6 +1322,9 @@ Vue.component("form-table", {
       });
     },
 
+
+  },
+  created() {
 
   },
   mounted() {
