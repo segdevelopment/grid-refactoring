@@ -22,7 +22,7 @@ div.control-content-scroll {
     width: calc(100%);
     position: relative;
     overflow: auto !important;
-    display: block;
+    /* display: block; */
     border-collapse: separate;
     border-spacing: 0 0;
     border-radius: 0.2rem;
@@ -64,7 +64,6 @@ div.control-content-scroll {
     line-height: 2;
     position: relative;
     background: #fff;
-    padding: 0 .8em;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
     border-bottom: 1px solid #17284e20;
@@ -86,7 +85,6 @@ div.control-content-scroll {
 }
 
 .table-component .form-table-div-row-body .form-table-div-content {
-    padding: 0 0.8em;
     color: #000;
     --rectangleWidth: 100%;
     --rectangleHeight: 35px;
@@ -100,7 +98,7 @@ div.control-content-scroll {
     box-sizing: border-box;
 }
 
-.table-component .form-table-div-row-body .form-table-div-row-body:not(:last-child) .form-table-div-content {
+.table-component .form-table-div-row-body:not(:last-child) .form-table-div-content {
     border-bottom: 1px solid #17284e20;
 }
 
@@ -108,15 +106,15 @@ div.control-content-scroll {
     cursor: default !important;
 }
 
-.table-component .form-table-div-row-body .form-table-div-row-body.selected .form-table-div-content {
+.table-component .form-table-div-row-body.selected .form-table-div-content {
     background: rgb(190, 229, 235) !important ;
 }
 
-.table-component .form-table-div-row-body .form-table-div-row-body:not(.selected):hover .form-table-div-content {
+.table-component .form-table-div-row-body:not(.selected):hover .form-table-div-content {
     background: rgba(0,0,0,.09);
 }
 
-.table-component .form-table-div-row-body .form-table-div-row-body.customized-line-rendered .form-table-div-content {
+.table-component .form-table-div-row-body.customized-line-rendered .form-table-div-content {
     background-color: rgba(0,0,0,.05);
 }
 
@@ -147,15 +145,15 @@ div.control-content-scroll {
     border-right: 2px dashed #0e65eb !important;
 }
 
-.table-component th.column-cuted {
+.table-component .form-table-div-header.column-cuted {
     border-top: 2px dashed #0e65eb;
 }
 
-.table-component th:hover .resize-column {
+.table-component .form-table-div-header:hover .resize-column {
     opacity: 1 !important;
 }
 
-.table-component th .resize-column {
+.table-component .form-table-div-header .resize-column {
     padding: 0;
     left: auto;
     --dragHeaderHeight: 100%;
@@ -638,7 +636,7 @@ form-table-paginate.form-table-paginate.right-window {
     justify-content: space-between;
 }
 .form-table-div-header {
-    width: 100%;
+    /* width: 100%; */
     padding: 0 2px;
 }
 .form-table-div-row-body {
@@ -646,6 +644,6 @@ form-table-paginate.form-table-paginate.right-window {
     justify-content: space-between;
 }
 .form-table-div-content {
-    width: 100%;
+    /* width: 100%; */
     padding: 0 2px;
 }
