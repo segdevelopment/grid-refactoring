@@ -19,7 +19,8 @@ div.control-content-scroll {
 }
 
 .table-component .form-table-div-table {
-    width: calc(100%);
+    min-width: calc(100%);
+    width: 100%;
     position: relative;
     overflow: auto !important;
     /* display: block; */
@@ -62,6 +63,7 @@ div.control-content-scroll {
     color: #000;
     height: 40px;
     line-height: 2;
+    padding: 2px .6em;
     position: relative;
     background: #fff;
     -webkit-box-sizing: border-box;
@@ -95,6 +97,8 @@ div.control-content-scroll {
     line-height: 35px;
     position: relative;
     background-color: #fff;
+    padding: 0 .6em;
+    overflow: hidden;
     box-sizing: border-box;
 }
 

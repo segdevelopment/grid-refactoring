@@ -133,29 +133,29 @@ Vue.component("form-table", {
     },
   },
   methods: {
-    processar(f) {
+    processar(f) {    
       const t = [];
       const x = JSON.parse(localStorage.getItem(`form-table-${this.nome}`)) || f;
 
-      let k = this.fields.map(i => Object.defineProperty({}, i.key, { value: this.itens.filter((j, k) => k < 10).map(j => j[i.key] || '').map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
-      let j = this.fields.map(i => Object.defineProperty({}, i.key, { value: String(i.key).length}))
-      let prop = k.map(a => Object.getOwnPropertyNames(a)[0])
-      let unifyKAndJ = prop.map((o, i) => Object.defineProperty({}, o, { value: k[i][o] > j[i][o] ? k[i][o] : j[i][o]}))
-      let total = unifyKAndJ.map((o, i) => o[prop[i]]).reduce((a, c) =>  a + c, 0)
+      let bodyCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: this.itens.filter((j, k) => k < 10).map(j => j[i.key] || '').map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
+      let headerCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: String(i.key).length}))
+      let fieldsNames = bodyCellsSize.map(a => Object.getOwnPropertyNames(a)[0])
+      let finalsSizes = fieldsNames.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
+      let total = finalsSizes.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
       let columnsSize = []
       
-      prop.map((o, i) => columnsSize[o] = parseFloat(((unifyKAndJ[i][o] / total) * 100).toFixed(1))).reduce( (a, i) => a + i)
+      fieldsNames.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(1))).reduce( (a, i) => a + i)
       
-      console.log(k, j, unifyKAndJ, columnsSize, total)
+      console.log(bodyCellsSize, headerCellsSize, finalsSizes, total)
 
       x.forEach((i, index) => {
-
         i.style = i.style || {}
-        let k = x.find((j) => j.key === i.key);
-        if (k) {
 
-          i.style.width = `calc(${columnsSize[prop[index]]}%)`
-          i.style.textAlign = 'left'
+        let k = x.find((j) => j.key === i.key);
+
+        if (k) {
+          i.style.width = `calc(${columnsSize[fieldsNames[index]]}%)`
+          i.style.textAlign = index === 0 ? 'right' : 'left'
           t.push({...k, width: i.width})
         }
       })
@@ -405,7 +405,7 @@ Vue.component("form-table", {
         this.$set(this.selectedCell, 'initNavigation', true)
         this.tableFocused = true
         this.disableScroll()
-
+        
         this.table.onkeydown = e => {
           if (this.tableFocused && this.paginate.currentPageContent.length != 0) {
 
@@ -430,7 +430,6 @@ Vue.component("form-table", {
           this.enableScroll()
         }
       }
-
     },
     verification(e) {
       if (!this.tableFocused && this.paginate.pages > 1) {
@@ -600,7 +599,7 @@ Vue.component("form-table", {
         moveRight() {
           let nextSelectedCell = currentSelectedCell.nextElementSibling;
 
-          if (currentSelectedCell.cellIndex === (currentSelectedCell.parentElement.childElementCount - 1) && paginate.active < paginate.pages) {
+          if (Number(currentSelectedCell.dataset.index) === (currentSelectedCell.parentElement.childElementCount - 1) && paginate.active < paginate.pages) {
             if ((paginate.allPages[paginate.allPages.length - 1].length < (selectedCell.row + 1) && paginate.allPages[paginate.allPages.length - 1].length < (selectedRow.row + 1)) && (paginate.currentPageContent === paginate.allPages[paginate.allPages.length - 2])) {
               set(selectedCell, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
               set(selectedRow, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
@@ -614,32 +613,32 @@ Vue.component("form-table", {
           if (nextSelectedCell?.getBoundingClientRect().right > sliderEl?.getBoundingClientRect().right) scrollTo(nextSelectedCell, sliderEl, "right")
 
           if (columnsSelected.hasSelection && nextSelectedCell !== null)
-            selectColumn([parseInt(nextSelectedCell.cellIndex)], true)
+            selectColumn([parseInt(Array.from(nextSelectedCell.parentElement.children).indexOf(nextSelectedCell))], true)
 
           nextSelectedCell !== null && changeSelectedCellToSibling(nextSelectedCell);
         },
         moveLeft() {
           let nextSelectedCell = currentSelectedCell.previousElementSibling;
 
-          if (currentSelectedCell.cellIndex === 0 && paginate.active > 1)
+          if (Number(currentSelectedCell.dataset.index) === 0 && paginate.active > 1)
             changePage(paginate.active, "decrement")
 
           if (columnsSelected.hasSelection && nextSelectedCell !== null)
-            selectColumn([parseInt(nextSelectedCell.cellIndex)], true)
+            selectColumn([parseInt(Array.from(nextSelectedCell.parentElement.children).indexOf(nextSelectedCell))], true)
 
           if (nextSelectedCell?.getBoundingClientRect().right < sliderEl?.getBoundingClientRect().right) scrollTo(nextSelectedCell, sliderEl, "left")
 
           nextSelectedCell != null && changeSelectedCellToSibling(nextSelectedCell);
         },
         moveDown() {
-          let rowId = Array.from(currentSelectedCell.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedCell?.parentElement.nextElementSibling)
-          let nextSelectedRow = currentSelectedCell.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')[rowId]
+          let rowId = Array.from(currentSelectedCell?.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedCell?.parentElement.nextElementSibling)
+          let nextSelectedRow = currentSelectedCell?.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')[rowId]
 
           if (nextSelectedRow !== null) {
             let currentSelectedCellId = Array.from(currentSelectedCell.parentElement.children).indexOf(currentSelectedCell)
-            let nextSelectedCell = nextSelectedRow.children[currentSelectedCellId]
+            let nextSelectedCell = nextSelectedRow?.children[currentSelectedCellId]
 
-            nextSelectedCell !== null && changeSelectedCellToSibling(nextSelectedCell);
+            if (nextSelectedCell !== null) { changeSelectedCellToSibling(nextSelectedCell) };
           }
         },
         moveUp() {
@@ -647,17 +646,17 @@ Vue.component("form-table", {
           let nextSelectedRow = currentSelectedCell.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')[rowId]
 
           if (nextSelectedRow !== null) {
-            let currentSelectedCellId = Array.from(currentSelectedCell.parentElement.children).indexOf(currentSelectedCell)
-            let nextSelectedCell = nextSelectedRow.children[currentSelectedCellId]
+            let currentSelectedCellId = Array.from(currentSelectedCell?.parentElement.children).indexOf(currentSelectedCell)
+            let nextSelectedCell = nextSelectedRow?.children[currentSelectedCellId]
 
-            nextSelectedCell !== null && changeSelectedCellToSibling(nextSelectedCell);
+            if (nextSelectedCell !== null)  { changeSelectedCellToSibling(nextSelectedCell) };
           }
         },
       };
     },
     changeSelectedCellToSibling(nextSelectedCell) {
-      let rowIndex = Array.from(this.table.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedCell.parentElement)
-      let columnIndex = Array.from(nextSelectedCell.parentElement.children).indexOf(nextSelectedCell)
+      let rowIndex = Array.from(this.table.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedCell?.parentElement)
+      let columnIndex = Array.from(nextSelectedCell?.parentElement.children).indexOf(nextSelectedCell)
 
       this.$set(this.selectedCell, "row", rowIndex);
       this.$set(this.selectedCell, "column", columnIndex);
@@ -699,14 +698,14 @@ Vue.component("form-table", {
       const changePage = this.changePage;
       const scrollTo = this.scrollTo;
       const paginate = this.paginate;
-      const sliderEl = this.table;
+      const table = this.table;
       const set = this.$set;
 
       return {
         moveRowRight() {
           if (selectedCell.initNavigation && selectedRow.onlyRow && !columnsSelected.hasSelection) {
-            if (currentSelectedRow?.getBoundingClientRect().right > sliderEl?.getBoundingClientRect().right) {
-              scrollTo(currentSelectedRow, sliderEl, "right", 200)
+            if (currentSelectedRow?.getBoundingClientRect().right > table?.getBoundingClientRect().right) {
+              scrollTo(currentSelectedRow, table, "right", 200)
 
             } else {
               if (paginate.allPages[paginate.allPages.length - 1].length < selectedRow.row + 1 && paginate.currentPageContent === paginate.allPages[[paginate.allPages.length - 2]]) {
@@ -722,7 +721,7 @@ Vue.component("form-table", {
           } else if (selectedCell.initNavigation && selectedRow.onlyRow && columnsSelected.hasSelection) {
             let nextSelectedColumn = currentSelectedColumn.nextElementSibling;
 
-            if (currentSelectedColumn.cellIndex === (currentSelectedColumn.parentElement.childElementCount - 1) && paginate.active < paginate.pages) {
+            if (Number(currentSelectedColumn.dataset.index) === (currentSelectedColumn.parentElement.childElementCount - 1) && paginate.active < paginate.pages) {
 
               if ((paginate.allPages[paginate.allPages.length - 1].length < (selectedCell.row + 1) && paginate.allPages[paginate.allPages.length - 1].length < (selectedRow.row + 1)) && (paginate.currentPageContent === paginate.allPages[paginate.allPages.length - 2])) {
                 set(selectedCell, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
@@ -733,47 +732,48 @@ Vue.component("form-table", {
                 changePage(paginate.active, "increment")
               }
             }
-            if (nextSelectedColumn?.getBoundingClientRect().right > sliderEl?.getBoundingClientRect().right) scrollTo(nextSelectedColumn, sliderEl, "right");
+            if (nextSelectedColumn?.getBoundingClientRect().right > table?.getBoundingClientRect().right) scrollTo(nextSelectedColumn, table, "right");
 
-            nextSelectedColumn !== null && selectColumn([parseInt(nextSelectedColumn.cellIndex)], true)
+            nextSelectedColumn !== null && selectColumn([parseInt(nextSelectedColumn.dataset.index)], true)
 
           }
         },
         moveRowLeft() {
           if (selectedCell.initNavigation && selectedRow.onlyRow && !columnsSelected.hasSelection) {
-            if (currentSelectedRow?.getBoundingClientRect().left < sliderEl?.getBoundingClientRect().left) scrollTo(currentSelectedRow, sliderEl, "left", 200);
+            if (currentSelectedRow?.getBoundingClientRect().left < table?.getBoundingClientRect().left) scrollTo(currentSelectedRow, table, "left", 200);
 
             else paginate.active > 1 && changePage(paginate.active, "decrement")
 
           } else if (selectedCell.initNavigation && selectedRow.onlyRow && columnsSelected.hasSelection) {
             let nextSelectedColumn = currentSelectedColumn.previousElementSibling;
 
-            if (currentSelectedColumn.cellIndex === 0 && paginate.active > 1) changePage(paginate.active, "decrement")
+            if (Number(currentSelectedColumn.dataset.index) === 0 && paginate.active > 1) changePage(paginate.active, "decrement")
 
-            if (nextSelectedColumn?.getBoundingClientRect().left < sliderEl?.getBoundingClientRect().left) scrollTo(nextSelectedColumn, sliderEl, "left");
+            if (nextSelectedColumn?.getBoundingClientRect().left < table?.getBoundingClientRect().left) scrollTo(nextSelectedColumn, table, "left");
 
-            nextSelectedColumn !== null && selectColumn([parseInt(nextSelectedColumn.cellIndex)], true)
+            nextSelectedColumn !== null && selectColumn([parseInt(nextSelectedColumn.dataset.index)], true)
           }
         },
         moveRowUp() {
-          let rowId = Array.from(currentSelectedCell.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedCell?.parentElement.previousElementSibling)
-          let nextSelectedRow = 
+          let rowId = Array.from(table.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedRow.previousElementSibling)
+          let nextSelectedRow = table.querySelectorAll('.form-table-div-row-body')[rowId]
 
           nextSelectedRow !== null && set(selectedCell, 'row', rowId);
 
           nextSelectedRow !== null && changeSelectedRowToSibling(nextSelectedRow);
         },
         moveRowDown() {
-          let nextSelectedRow = currentSelectedRow.nextElementSibling;
+          let rowId = Array.from(table.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedRow.nextElementSibling)
+          let nextSelectedRow = table.querySelectorAll('.form-table-div-row-body')[rowId]
 
-          nextSelectedRow !== null && set(selectedCell, 'row', (nextSelectedRow.rowIndex - 1));
+          nextSelectedRow !== null && set(selectedCell, 'row', rowId);
 
           nextSelectedRow !== null && changeSelectedRowToSibling(nextSelectedRow);
         }
       }
     },
     changeSelectedRowToSibling(nextSelectedRow) {
-      const rowIndex = Array.from(this.table.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedCell.parentElement)
+      const rowIndex = Array.from(this.table.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedRow)
 
       this.$set(this.selectedRow, 'row', rowIndex)
     },
@@ -786,13 +786,15 @@ Vue.component("form-table", {
     },
     mouseNavigation(e) {
       let nextSelectedCell = e.target;
+      let columnIndex = Array.from(nextSelectedCell?.parentElement.querySelectorAll('.form-table-div-content')).indexOf(nextSelectedCell)
+      let rowIndex = Array.from(nextSelectedCell?.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedCell.parentElement)
 
       this.changeSelectedCellToSibling(nextSelectedCell);
 
       if (this.columnsSelected.hasSelection)
-        this.selectColumn([parseInt(nextSelectedCell.cellIndex)], true)
+        this.selectColumn([parseInt(columnIndex)], true)
 
-      this.$set(this.selectedRow, 'row', nextSelectedCell.parentElement.rowIndex - 1);
+      this.$set(this.selectedRow, 'row', rowIndex);
     },
 
     // to drag columns
@@ -910,7 +912,7 @@ Vue.component("form-table", {
       const elements = document.elementsFromPoint(rect.x, fakeColumn.getBoundingClientRect().top);
 
       if (elements) {
-        let cell = elements.find((el) => el.nodeName === "TH");
+        let cell = elements.find((el) => el.classList.contains('form-table-div-header'));
 
         if (cell && rect.x !== this.draggable.indicatorIndex) {
           const measures = rect.x - rect.width / 2;
@@ -951,7 +953,7 @@ Vue.component("form-table", {
       }
     },
     removeBorderIndicator() {
-      this.table.querySelectorAll("form-table-div-content, .form-table-div-header").forEach((el) =>
+      this.table.querySelectorAll(".form-table-div-content, .form-table-div-header").forEach((el) =>
         el.classList.remove("dragging-border-left", "dragging-border-right", "new-index-table")
       );
     },
@@ -959,8 +961,9 @@ Vue.component("form-table", {
     // resize Columns
     handleDownChangeSize(e, header, colIndex) {
       this.$set(this.resize, "colIndex", colIndex);
-      this.$set(this.resize, "width", parseInt(header.width || 100, 10));
+      this.$set(this.resize, "width", parseFloat((this.table.querySelectorAll('.form-table-div-header')[colIndex].offsetWidth)));
 
+      console.log(this.resize)
       const [element] = this.$refs[`resize-${colIndex}`];
       const rect = element.getBoundingClientRect();
 
@@ -971,9 +974,9 @@ Vue.component("form-table", {
       this.$set(this.resize, "offset", rect.left);
 
       const body = this.$el.querySelector(".form-table-div-table");
-      const lineHeight = this.$el.querySelector(".form-table-div-table").firstElementChild.offsetHeight;
+      const lineHeight = this.table.querySelector(".form-table-div-row-body").offsetHeight;
 
-      element.style.setProperty("--dragHeaderHeight", `${body.offsetHeight + lineHeight}px`);
+      element.style.setProperty("--dragHeaderHeight", `${body.offsetHeight}px`);
 
       window.addEventListener("mousemove", this.handleMoveChangeSize);
       window.addEventListener("mouseup", this.handleUpChangeSize);
@@ -1142,10 +1145,11 @@ Vue.component("form-table", {
     // Select columns
     handleSelectColumnStarted(e, index) {
       const element = e.target.dataset.index ? e.target : e.target.parentElement;
-
-      if (element?.tagName === "TH") {
+      
+      if (element?.classList.contains('form-table-div-header')) {
         if (this.columnsSelected.indexes.includes(parseInt(index)) && this.columnsSelected.hasSelection) {
           this.handleStartDraggable();
+    
         } else {
           this.selectColumn([parseInt(index)], true);
           document.addEventListener("click", this.handleUnselectColumn);
@@ -1154,6 +1158,7 @@ Vue.component("form-table", {
     },
     selectColumn(index, reset) {
       const indexes = reset ? index : [...new Set([...this.columnsSelected.indexes, index])];
+
 
       this.colunas = this.colunas.map((column, key) => {
         column.selected = indexes.includes(key) || (key > Math.min(...indexes) && key < Math.max(...indexes));
@@ -1189,10 +1194,11 @@ Vue.component("form-table", {
         let el = e.target.closest("div.form-table-div-header");
         let dropdownEl = document.querySelectorAll('.table-component .dropdown-filter-menu')[colIndex];
         let rightPosition = el.offsetLeft + el.offsetWidth;
+        console.log(el)
 
         dropdownEl.style.left = rightPosition - dropdownEl.offsetWidth - 162 + 'px';
 
-        if (dropdownEl.offsetLeft === 0 && el.cellIndex === 0)
+        if (dropdownEl.offsetLeft === 0 && Number(el.dataset.index) === 0)
           dropdownEl.style.left = 0;
       }
 
@@ -1362,135 +1368,48 @@ const vm = new Vue({
           {
             id: 1,
             nome: "Daniel",
-            descricao: "Descrição de teste",
+            descricao: "Um simples teste de tamanho",
             sobrenome: "Sampaio",
             nascimento: "03/12/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
-          },
-          {
-            id: 1,
-            nome: "Daniel",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
-            nascimento: "03/12/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
           },
           {
             id: 2,
-            nome: "João",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
-            nascimento: "04/09/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
-          },
-          {
-            id: 1,
-            nome: "Daniel",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
+            nome: "Lucas",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
             nascimento: "03/12/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
           },
           {
-            id: 1,
-            nome: "Daniel",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
+            id: 3,
+            nome: "Fernando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
             nascimento: "03/12/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
           },
           {
-            id: 2,
-            nome: "João",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
-            nascimento: "04/09/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
-          },
-          {
-            id: 1,
-            nome: "Daniel",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
+            id: 4,
+            nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
             nascimento: "03/12/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
           },
-          {
-            id: 1,
-            nome: "Daniel",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
-            nascimento: "03/12/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
-          },
-          {
-            id: 2,
-            nome: "João",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
-            nascimento: "04/09/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
-          },
-          {
-            id: 1,
-            nome: "Daniel",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
-            nascimento: "03/12/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
-          },
-          {
-            id: 1,
-            nome: "Daniel",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
-            nascimento: "03/12/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
-          },
-          {
-            id: 2,
-            nome: "João",
-            descricao: "Descrição de teste",
-            sobrenome: "Sampaio",
-            nascimento: "04/09/2001",
-            texto: "Hello World!",
-            data: "Null",
-            procedimento: "Null",
-            conclusao: "Null",
-          },
+          
           
         ],
       },
