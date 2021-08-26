@@ -144,7 +144,7 @@ Vue.component("form-table", {
       let total = finalsSizes.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
       let columnsSize = []
       
-      fieldsNames.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(1))).reduce( (a, i) => a + i)
+      fieldsNames.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i)
       
       console.log(bodyCellsSize, headerCellsSize, finalsSizes, total)
 
@@ -154,6 +154,7 @@ Vue.component("form-table", {
         let k = x.find((j) => j.key === i.key);
 
         if (k) {
+          i.minWidth = `calc(${columnsSize[fieldsNames[index]]}%)`
           i.style.width = `calc(${columnsSize[fieldsNames[index]]}%)`
           i.style.textAlign = index === 0 ? 'right' : 'left'
           t.push({...k, width: i.width})
@@ -312,12 +313,8 @@ Vue.component("form-table", {
         }
 
         this.selecao.draggingEle.style.position = "absolute";
-        this.selecao.draggingEle.style.top = `${
-          this.selecao.draggingEle.offsetTop + e.clientY - this.selecao.y
-        }px`;
-        this.selecao.draggingEle.style.left = `${
-          this.selecao.draggingEle.offsetLeft + e.clientX - this.selecao.x
-        }px`;
+        this.selecao.draggingEle.style.top = `${this.selecao.draggingEle.offsetTop + e.clientY - this.selecao.y}px`;
+        this.selecao.draggingEle.style.left = `${this.selecao.draggingEle.offsetLeft + e.clientX - this.selecao.x}px`;
 
         this.selecao.x = e.clientX;
         this.selecao.y = e.clientY;
@@ -785,7 +782,7 @@ Vue.component("form-table", {
       this.mouseNavigation(e);
     },
     mouseNavigation(e) {
-      let nextSelectedCell = e.target;
+      let nextSelectedCell = e.target.tagName === "SPAN" ? e.target.parentElement : e.target;
       let columnIndex = Array.from(nextSelectedCell?.parentElement.querySelectorAll('.form-table-div-content')).indexOf(nextSelectedCell)
       let rowIndex = Array.from(nextSelectedCell?.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedCell.parentElement)
 
@@ -961,7 +958,7 @@ Vue.component("form-table", {
     // resize Columns
     handleDownChangeSize(e, header, colIndex) {
       this.$set(this.resize, "colIndex", colIndex);
-      this.$set(this.resize, "width", parseFloat((this.table.querySelectorAll('.form-table-div-header')[colIndex].offsetWidth)));
+      this.$set(this.resize, "width", parseFloat((this.table.querySelectorAll('.form-table-div-header')[colIndex].offsetWidth).toFixed(2)));
 
       console.log(this.resize)
       const [element] = this.$refs[`resize-${colIndex}`];
@@ -974,7 +971,7 @@ Vue.component("form-table", {
       this.$set(this.resize, "offset", rect.left);
 
       const body = this.$el.querySelector(".form-table-div-table");
-      const lineHeight = this.table.querySelector(".form-table-div-row-body").offsetHeight;
+      // const lineHeight = this.table.querySelector(".form-table-div-row-body").offsetHeight;
 
       element.style.setProperty("--dragHeaderHeight", `${body.offsetHeight}px`);
 
@@ -999,14 +996,15 @@ Vue.component("form-table", {
       const oldWidth = this.resize.width;
 
       const result = e.clientX - oldOffset;
-      const newSize = result > 0 ? oldWidth + result : oldWidth - result * -1;
+      const newSize = parseFloat((result > 0 ? oldWidth + result : oldWidth - result * -1).toFixed(3));
       const newLeft = result > 0 ? oldOffset + result : oldOffset - result * -1;
 
-      if (20 < newSize) {
+      if (oldWidth < newSize) {
         element.style.left = `${newLeft}px`;
         element.style.top = `${element.offsetTop}px`;
 
-        this.$set(this.colunas[this.resize.colIndex], "width", newSize);
+        this.$set(this.colunas[this.resize.colIndex].style, "width", `calc(${newSize}px)`);
+        console.log(newSize)
       }
     },
     defineResizePosition() {
@@ -1321,6 +1319,27 @@ Vue.component("form-table", {
       this.$set(this.paginate, 'currentPageContent', allPages[syncronizePagesIndex]);
     },
 
+    applyShadowOnCell() {
+      this.table.querySelectorAll('.form-table-div-content span').forEach(o => {
+        const flag = o.offsetWidth > o.parentElement.offsetWidth;
+        
+        if (!!flag) {
+          const span = document.createElement('span');
+
+          span.classList.add('blur')
+
+          span.style.width = "16px"
+          span.style.height = "100%"
+          span.style.position = "absolute"
+          span.style.blur = '50px'
+          span.style.right = "0px"
+          span.style.background = "linear-gradient(270deg, #88888890, #F2F2F201"
+
+          o.parentElement.appendChild(span)
+        } 
+      })
+    },
+
     // Table start
     afterTableMounted() {
       this.$nextTick(() => {
@@ -1336,6 +1355,7 @@ Vue.component("form-table", {
       this.$nextTick(() => {
         this.habilitaEventos();
         this.defineResizePosition();
+        this.applyShadowOnCell();
       });
     },
 

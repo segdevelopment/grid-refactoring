@@ -7,9 +7,11 @@ div.control-content-scroll .table-component .form-table-div-content.selected-cel
 }
 
 div.control-content-scroll {
-    width: calc(100%);
+    max-width: calc(100%);
+    width: max-content;
     position: relative;
     display: block;
+    overflow: auto !important;
     clear: both;
 }
 
@@ -19,17 +21,26 @@ div.control-content-scroll {
 }
 
 .table-component .form-table-div-table {
-    min-width: calc(100%);
+    /* min-width: calc(100%);
     width: 100%;
     position: relative;
     overflow: auto !important;
-    /* display: block; */
+    display: block;
     border-collapse: separate;
     border-spacing: 0 0;
     border-radius: 0.2rem;
     white-space: nowrap;
     border: 1px solid #17284e20;
-    /* scroll-behavior: smooth; */
+    scroll-behavior: smooth; */
+
+    /* width: calc(100%); */
+    position: relative;
+    display: block;
+    border-collapse: separate;
+    border-spacing: 0 0;
+    border-radius: 0.2rem;
+    white-space: nowrap;
+    border: 1px solid #17284e20;
 }
 
 .table-component .form-table-div-table:focus {
@@ -69,8 +80,8 @@ div.control-content-scroll {
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
     border-bottom: 1px solid #17284e20;
-    -webkit-transition: width 0.7s ease;
-    transition: width 0.7s ease;
+    /* -webkit-transition: width 0.7s ease; */
+    /* transition: width 0.7s ease; */
     font-weight: 800;
     cursor: move;
     /* fallback if grab cursor is unsupported */
@@ -636,6 +647,7 @@ form-table-paginate.form-table-paginate.right-window {
 .form-table-div-table{
 }
 .form-table-div-row-header {
+    width: auto;
     display: flex;
     justify-content: space-between;
 }
@@ -644,6 +656,7 @@ form-table-paginate.form-table-paginate.right-window {
     padding: 0 2px;
 }
 .form-table-div-row-body {
+    width: auto;
     display: flex;
     justify-content: space-between;
 }

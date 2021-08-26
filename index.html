@@ -56,7 +56,9 @@
     
                     <div class="form-table-div-row-body" v-for="(item, indiceLinha) in customItems" :key="item" name="fade" :data-index='indiceLinha' :class="{selected: selectedRow.row === indiceLinha && selectedCell.initNavigation, 'customized-line-rendered': indiceLinha % 2 === 0}" is="transition-group">
                         <div class="form-table-div-content" v-for="(coluna, indiceColuna) in colunas" v-show="!coluna.hide" :data-index="indiceColuna" :key="coluna.key" :style="coluna.style" @click="clickNavigationListener($event)" :class="[{'selected-cell': indiceLinha == selectedCell.row && indiceColuna == selectedCell.column && selectedCell.initNavigation && !selectedRow.onlyRow}, {'customized-line-rendered': indiceLinha % 2 == 0}, {'column-selected': coluna.selected && columnsSelected.hasSelection}, {'column-cuted': coluna.selected && draggable.started}, {left: coluna.selected && draggable.started && indiceColuna === Math.min(...columnsSelected.indexes)}, {right: coluna.selected && draggable.started && indiceColuna === Math.max(...columnsSelected.indexes)}, coluna.class]">
-                                {{ coluna.formatter ? coluna.formatter(item[coluna.key]) : item[coluna.key] }}
+                                <span @click="clickNavigationListener($event)">
+                                    {{ coluna.formatter ? coluna.formatter(item[coluna.key]) : item[coluna.key] }}
+                                </span>
                         </div>
                     </div>
                 </div>
