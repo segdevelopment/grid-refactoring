@@ -43,7 +43,12 @@ Vue.component("form-table", {
       this.colunas = this.processar(this.fields);
     },
     itens() {
-      setTimeout(() => this.defineRowsMargin(), 50)
+      const rows = Array.from(this.table.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
+
+      if (rows) {
+        this.defineRowsMargin()
+        this.colunas = this.processar(this.fields);
+      }
     },
     "filter.opened": function (val) {
       if (!val) {
@@ -56,6 +61,7 @@ Vue.component("form-table", {
       const sliderEl = this.$refs.tableComponent;
 
       this.defineResizePosition();
+      this.defineRowsMargin();
 
       if (this.selectedCell.initNavigation && !this.selectedRow.onlyRow && !this.columnsSelected.hasSelection) {
 
@@ -1190,22 +1196,22 @@ Vue.component("form-table", {
 
     // Menu
     handleShowMenu(e, colIndex) {
-      e.stopImmediatePropagation()
-
+      e.stopPropagation()
+      e.preventDefault()
       if (colIndex === this.menuShowIndex) colIndex = null;
-
+      
       if (colIndex !== null) {
         let el = e.target.closest("div.form-table-div-header");
         let dropdownEl = document.querySelectorAll('.table-component .dropdown-filter-menu')[colIndex];
         let rightPosition = el.offsetLeft + el.offsetWidth;
-
+        
         dropdownEl.style.left = rightPosition - dropdownEl.offsetWidth - 162 + 'px';
-
+        
         if (parseInt(dropdownEl.style.left.split('p')[0]) < 0 ) {
           dropdownEl.style.left = 0;
         }
       }
-
+      
       this.menuShowIndex = colIndex;
     },
 
@@ -1346,14 +1352,15 @@ Vue.component("form-table", {
       })
     },
     defineRowsMargin() {
-      const rows = Array.from(this.table.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
+      if (this.table) {
+        const rows = Array.from(this.table?.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
 
-      rows.forEach( k => {
-        k.style.marginBottom = `${-(k.offsetHeight - k.children[0].offsetHeight)}px`
-
-        console.log(k.style.marginBottom)
-      })
-
+        rows.forEach( k => {
+          k.style.marginBottom = `${-(k.offsetHeight - k.children[0].offsetHeight)}px`
+  
+          console.log(k.style.marginBottom)
+        })
+      }
     },
 
     // Table start
@@ -1362,6 +1369,12 @@ Vue.component("form-table", {
         const table = this.$refs.tableComponent;
 
         if (table) {
+          const rows = Array.from(table.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
+
+          if (rows) {
+            setTimeout(() => this.defineRowsMargin(), 50)
+          }
+
           this.table = table;
           this.definePaginatePosition();
         } else {
@@ -1402,6 +1415,94 @@ const vm = new Vue({
           { key: "descricao", label: "Descrição" },
         ],
         itens: [
+          {
+            id: 1,
+            nome: "Daniel",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "Lucas",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "Fernando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "Daniel",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "Lucas",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "Fernando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
           {
             id: 1,
             nome: "Daniel",

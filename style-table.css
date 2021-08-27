@@ -32,6 +32,7 @@ div.control-content-scroll {
 
     width: calc(100%);
     position: relative;
+    padding-bottom: 8px;
     display: block;
     border-collapse: separate;
     border-spacing: 0 0;
@@ -234,7 +235,7 @@ div.control-content-scroll {
     margin-right: 5px;
 }
 
-.table-component span.handler-menu {
+.table-component button.handler-menu {
     padding: 0;
     user-select: none;
     width: 1.7em;
@@ -250,22 +251,22 @@ div.control-content-scroll {
     top: 10px;
 }
 
-.table-component span.handler-menu.open-menu {
+.table-component button.handler-menu.open-menu {
     position: absolute;
     right: 10px;
     display: none;
     background-color: #fff;
 }
 
-.table-component .form-table-div-header:hover span.handler-menu.open-menu {
+.table-component .form-table-div-header:hover button.handler-menu.open-menu {
     display: flex;
 }
 
-.table-component span.handler-menu.open-menu.right {
+.table-component button.handler-menu.open-menu.right {
     right: 10px !important;
 }
 
-.table-component span.handler-menu i {
+.table-component button.handler-menu i {
     left: 3px;
     border: solid 5px transparent;
     background: transparent;
@@ -273,35 +274,35 @@ div.control-content-scroll {
     border-bottom-width: 0;
 }
 
-.table-component span.handler-menu.show-column {
+.table-component button.handler-menu.show-column {
     height: 20px;
     width: 15px;
     position: absolute;
     background: transparent;
 }
 
-.table-component span.handler-menu.show-column.right {
+.table-component button.handler-menu.show-column.right {
     right: -2px;
     border-right-width: 0;
     border-radius: 6px 0 0 6px;
 }
 
-.table-component span.handler-menu.show-column.left {
+.table-component button.handler-menu.show-column.left {
     left: -2px;
     border-radius: 0 6px 6px 0;
     border-left-width: 0;
 }
 
-.table-component span.handler-menu.show-column.hover {
+.table-component button.handler-menu.show-column.hover {
     border-color: #bfbfff;
     background: #fff;
 }
 
-.table-component span.handler-menu.show-column.right i {
+.table-component button.handler-menu.show-column.right i {
     transform: rotate(90deg);
 }
 
-.table-component span.handler-menu.show-column.left i {
+.table-component button.handler-menu.show-column.left i {
     transform: rotate(-90deg);
 }
 
