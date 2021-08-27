@@ -35,12 +35,15 @@ Vue.component("form-table", {
       tableFocused: false,
       menuShowIndex: null,
       hoverEl: null,
-      table: null
+      table: null,
     }
   },
   watch: {
     fields() {
       this.colunas = this.processar(this.fields);
+    },
+    itens() {
+      setTimeout(() => this.defineRowsMargin(), 50)
     },
     "filter.opened": function (val) {
       if (!val) {
@@ -133,7 +136,7 @@ Vue.component("form-table", {
     },
   },
   methods: {
-    processar(f) {    
+    processar(f) {
       const t = [];
       const x = JSON.parse(localStorage.getItem(`form-table-${this.nome}`)) || f;
 
@@ -143,9 +146,9 @@ Vue.component("form-table", {
       let finalsSizes = fieldsNames.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
       let total = finalsSizes.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
       let columnsSize = []
-      
+
       fieldsNames.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i)
-      
+
       console.log(bodyCellsSize, headerCellsSize, finalsSizes, total)
 
       x.forEach((i, index) => {
@@ -402,7 +405,7 @@ Vue.component("form-table", {
         this.$set(this.selectedCell, 'initNavigation', true)
         this.tableFocused = true
         this.disableScroll()
-        
+
         this.table.onkeydown = e => {
           if (this.tableFocused && this.paginate.currentPageContent.length != 0) {
 
@@ -1144,11 +1147,11 @@ Vue.component("form-table", {
     // Select columns
     handleSelectColumnStarted(e, index) {
       const element = e.target.dataset.index ? e.target : e.target.parentElement;
-      
+
       if (element?.classList.contains('form-table-div-header')) {
         if (this.columnsSelected.indexes.includes(parseInt(index)) && this.columnsSelected.hasSelection) {
           this.handleStartDraggable();
-    
+
         } else {
           this.selectColumn([parseInt(index)], true);
           document.addEventListener("click", this.handleUnselectColumn);
@@ -1325,7 +1328,7 @@ Vue.component("form-table", {
     applyShadowOnCell() {
       this.table.querySelectorAll('.form-table-div-content span').forEach(o => {
         const flag = o.offsetWidth > o.parentElement.offsetWidth;
-        
+
         if (!!flag) {
           const span = document.createElement('span');
 
@@ -1339,14 +1342,25 @@ Vue.component("form-table", {
           span.style.background = "linear-gradient(270deg, #88888850, #F2F2F201"
 
           o.parentElement.appendChild(span)
-        } 
+        }
       })
+    },
+    defineRowsMargin() {
+      const rows = Array.from(this.table.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
+
+      rows.forEach( k => {
+        k.style.marginBottom = `${-(k.offsetHeight - k.children[0].offsetHeight)}px`
+
+        console.log(k.style.marginBottom)
+      })
+
     },
 
     // Table start
     afterTableMounted() {
       this.$nextTick(() => {
         const table = this.$refs.tableComponent;
+
         if (table) {
           this.table = table;
           this.definePaginatePosition();

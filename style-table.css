@@ -646,7 +646,6 @@ form-table-paginate.form-table-paginate.right-window {
 .form-table-div-table{
 }
 .form-table-div-row-header {
-    margin-bottom: -4px;    
 }
 .form-table-div-header {
     padding: 0 2px;
@@ -654,7 +653,6 @@ form-table-paginate.form-table-paginate.right-window {
     display: inline-block;
 }
 .form-table-div-row-body:not(:last-of-type) {
-    margin-bottom: -4px;
     height: 100%;
 }
 .form-table-div-content {
