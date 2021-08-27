@@ -609,10 +609,10 @@ Vue.component("form-table", {
 
           if (nextSelectedCell?.getBoundingClientRect().right > sliderEl?.getBoundingClientRect().right) scrollTo(nextSelectedCell, sliderEl, "right")
 
-          if (columnsSelected.hasSelection && nextSelectedCell !== null)
+          if (columnsSelected.hasSelection && nextSelectedCell != null)
             selectColumn([parseInt(Array.from(nextSelectedCell.parentElement.children).indexOf(nextSelectedCell))], true)
 
-          nextSelectedCell !== null && changeSelectedCellToSibling(nextSelectedCell);
+          nextSelectedCell != null && changeSelectedCellToSibling(nextSelectedCell);
         },
         moveLeft() {
           let nextSelectedCell = currentSelectedCell.previousElementSibling;
@@ -628,32 +628,32 @@ Vue.component("form-table", {
           nextSelectedCell != null && changeSelectedCellToSibling(nextSelectedCell);
         },
         moveDown() {
-          let rowId = Array.from(currentSelectedCell?.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedCell?.parentElement.nextElementSibling)
+          let rowId = currentSelectedCell?.parentElement.nextElementSibling?.dataset.index
           let nextSelectedRow = currentSelectedCell?.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')[rowId]
 
-          if (nextSelectedRow !== null) {
+          if (nextSelectedRow != null) {
             let currentSelectedCellId = Array.from(currentSelectedCell.parentElement.children).indexOf(currentSelectedCell)
             let nextSelectedCell = nextSelectedRow?.children[currentSelectedCellId]
 
-            if (nextSelectedCell !== null) { changeSelectedCellToSibling(nextSelectedCell) };
+            if (nextSelectedCell != null) { changeSelectedCellToSibling(nextSelectedCell) };
           }
         },
         moveUp() {
-          let rowId = Array.from(currentSelectedCell.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedCell?.parentElement.previousElementSibling)
+          let rowId = currentSelectedCell?.parentElement.previousElementSibling.dataset.index
           let nextSelectedRow = currentSelectedCell.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')[rowId]
 
-          if (nextSelectedRow !== null) {
+          if (nextSelectedRow != null) {
             let currentSelectedCellId = Array.from(currentSelectedCell?.parentElement.children).indexOf(currentSelectedCell)
             let nextSelectedCell = nextSelectedRow?.children[currentSelectedCellId]
 
-            if (nextSelectedCell !== null)  { changeSelectedCellToSibling(nextSelectedCell) };
+            if (nextSelectedCell != null)  { changeSelectedCellToSibling(nextSelectedCell) };
           }
         },
       };
     },
     changeSelectedCellToSibling(nextSelectedCell) {
-      let rowIndex = Array.from(this.table.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedCell?.parentElement)
-      let columnIndex = Array.from(nextSelectedCell?.parentElement.children).indexOf(nextSelectedCell)
+      let rowIndex = nextSelectedCell?.parentElement.dataset.index
+      let columnIndex = nextSelectedCell?.dataset.index
 
       this.$set(this.selectedCell, "row", rowIndex);
       this.$set(this.selectedCell, "column", columnIndex);
@@ -701,8 +701,11 @@ Vue.component("form-table", {
       return {
         moveRowRight() {
           if (selectedCell.initNavigation && selectedRow.onlyRow && !columnsSelected.hasSelection) {
-            if (currentSelectedRow?.getBoundingClientRect().right > table?.getBoundingClientRect().right) {
+            const lastCell = table.querySelector('.form-table-div-row-header').lastElementChild
+
+            if (parseInt(lastCell.getBoundingClientRect().right) > table?.getBoundingClientRect().right) {
               scrollTo(currentSelectedRow, table, "right", 200)
+
 
             } else {
               if (paginate.allPages[paginate.allPages.length - 1].length < selectedRow.row + 1 && paginate.currentPageContent === paginate.allPages[[paginate.allPages.length - 2]]) {
@@ -752,20 +755,20 @@ Vue.component("form-table", {
           }
         },
         moveRowUp() {
-          let rowId = Array.from(table.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedRow.previousElementSibling)
+          let rowId = currentSelectedRow.previousElementSibling?.dataset.index
           let nextSelectedRow = table.querySelectorAll('.form-table-div-row-body')[rowId]
 
-          nextSelectedRow !== null && set(selectedCell, 'row', rowId);
+          nextSelectedRow != null && set(selectedCell, 'row', rowId);
 
-          nextSelectedRow !== null && changeSelectedRowToSibling(nextSelectedRow);
+          nextSelectedRow != null && changeSelectedRowToSibling(nextSelectedRow);
         },
         moveRowDown() {
-          let rowId = Array.from(table.querySelectorAll('.form-table-div-row-body')).indexOf(currentSelectedRow.nextElementSibling)
+          let rowId = currentSelectedRow.nextElementSibling?.dataset.index
           let nextSelectedRow = table.querySelectorAll('.form-table-div-row-body')[rowId]
 
-          nextSelectedRow !== null && set(selectedCell, 'row', rowId);
+          nextSelectedRow != null && set(selectedCell, 'row', rowId);
 
-          nextSelectedRow !== null && changeSelectedRowToSibling(nextSelectedRow);
+          nextSelectedRow != null && changeSelectedRowToSibling(nextSelectedRow);
         }
       }
     },
@@ -957,10 +960,10 @@ Vue.component("form-table", {
 
     // resize Columns
     handleDownChangeSize(e, header, colIndex) {
+      e.stopPropagation()
       this.$set(this.resize, "colIndex", colIndex);
       this.$set(this.resize, "width", parseFloat((this.table.querySelectorAll('.form-table-div-header')[colIndex].offsetWidth).toFixed(2)));
 
-      console.log(this.resize)
       const [element] = this.$refs[`resize-${colIndex}`];
       const rect = element.getBoundingClientRect();
 
@@ -971,7 +974,6 @@ Vue.component("form-table", {
       this.$set(this.resize, "offset", rect.left);
 
       const body = this.$el.querySelector(".form-table-div-table");
-      // const lineHeight = this.table.querySelector(".form-table-div-row-body").offsetHeight;
 
       element.style.setProperty("--dragHeaderHeight", `${body.offsetHeight}px`);
 
@@ -999,12 +1001,11 @@ Vue.component("form-table", {
       const newSize = parseFloat((result > 0 ? oldWidth + result : oldWidth - result * -1).toFixed(3));
       const newLeft = result > 0 ? oldOffset + result : oldOffset - result * -1;
 
-      if (oldWidth < newSize) {
+      if (50 < newSize) {
         element.style.left = `${newLeft}px`;
         element.style.top = `${element.offsetTop}px`;
 
         this.$set(this.colunas[this.resize.colIndex].style, "width", `calc(${newSize}px)`);
-        console.log(newSize)
       }
     },
     defineResizePosition() {
@@ -1186,18 +1187,20 @@ Vue.component("form-table", {
 
     // Menu
     handleShowMenu(e, colIndex) {
+      e.stopImmediatePropagation()
+
       if (colIndex === this.menuShowIndex) colIndex = null;
 
       if (colIndex !== null) {
         let el = e.target.closest("div.form-table-div-header");
         let dropdownEl = document.querySelectorAll('.table-component .dropdown-filter-menu')[colIndex];
         let rightPosition = el.offsetLeft + el.offsetWidth;
-        console.log(el)
 
         dropdownEl.style.left = rightPosition - dropdownEl.offsetWidth - 162 + 'px';
 
-        if (dropdownEl.offsetLeft === 0 && Number(el.dataset.index) === 0)
+        if (parseInt(dropdownEl.style.left.split('p')[0]) < 0 ) {
           dropdownEl.style.left = 0;
+        }
       }
 
       this.menuShowIndex = colIndex;
@@ -1333,7 +1336,7 @@ Vue.component("form-table", {
           span.style.position = "absolute"
           span.style.blur = '50px'
           span.style.right = "0px"
-          span.style.background = "linear-gradient(270deg, #88888890, #F2F2F201"
+          span.style.background = "linear-gradient(270deg, #88888850, #F2F2F201"
 
           o.parentElement.appendChild(span)
         } 
@@ -1385,6 +1388,50 @@ const vm = new Vue({
           { key: "descricao", label: "Descrição" },
         ],
         itens: [
+          {
+            id: 1,
+            nome: "Daniel",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "Lucas",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "Fernando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
           {
             id: 1,
             nome: "Daniel",

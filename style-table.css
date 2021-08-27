@@ -3,15 +3,12 @@ div.control-content-scroll .table-component .form-table-div-content.selected-cel
     color: #fff;
     box-shadow: 0 0 4px rgba(0,0,0,.50);
     z-index: 150;
-    transition: .1s;
 }
 
 div.control-content-scroll {
-    max-width: calc(100%);
-    width: max-content;
+    width: calc(100%);
     position: relative;
     display: block;
-    overflow: auto !important;
     clear: both;
 }
 
@@ -33,11 +30,12 @@ div.control-content-scroll {
     border: 1px solid #17284e20;
     scroll-behavior: smooth; */
 
-    /* width: calc(100%); */
+    width: calc(100%);
     position: relative;
     display: block;
     border-collapse: separate;
     border-spacing: 0 0;
+    overflow: auto !important;
     border-radius: 0.2rem;
     white-space: nowrap;
     border: 1px solid #17284e20;
@@ -236,7 +234,7 @@ div.control-content-scroll {
     margin-right: 5px;
 }
 
-.table-component button.handler-menu {
+.table-component span.handler-menu {
     padding: 0;
     user-select: none;
     width: 1.7em;
@@ -252,21 +250,22 @@ div.control-content-scroll {
     top: 10px;
 }
 
-.table-component button.handler-menu.open-menu {
+.table-component span.handler-menu.open-menu {
     position: absolute;
     right: 10px;
     display: none;
+    background-color: #fff;
 }
 
-.table-component .form-table-div-header:hover button.handler-menu.open-menu {
+.table-component .form-table-div-header:hover span.handler-menu.open-menu {
     display: flex;
 }
 
-.table-component button.handler-menu.open-menu.right {
+.table-component span.handler-menu.open-menu.right {
     right: 10px !important;
 }
 
-.table-component button.handler-menu i {
+.table-component span.handler-menu i {
     left: 3px;
     border: solid 5px transparent;
     background: transparent;
@@ -274,35 +273,35 @@ div.control-content-scroll {
     border-bottom-width: 0;
 }
 
-.table-component button.handler-menu.show-column {
+.table-component span.handler-menu.show-column {
     height: 20px;
     width: 15px;
     position: absolute;
     background: transparent;
 }
 
-.table-component button.handler-menu.show-column.right {
+.table-component span.handler-menu.show-column.right {
     right: -2px;
     border-right-width: 0;
     border-radius: 6px 0 0 6px;
 }
 
-.table-component button.handler-menu.show-column.left {
+.table-component span.handler-menu.show-column.left {
     left: -2px;
     border-radius: 0 6px 6px 0;
     border-left-width: 0;
 }
 
-.table-component button.handler-menu.show-column.hover {
+.table-component span.handler-menu.show-column.hover {
     border-color: #bfbfff;
     background: #fff;
 }
 
-.table-component button.handler-menu.show-column.right i {
+.table-component span.handler-menu.show-column.right i {
     transform: rotate(90deg);
 }
 
-.table-component button.handler-menu.show-column.left i {
+.table-component span.handler-menu.show-column.left i {
     transform: rotate(-90deg);
 }
 
@@ -647,20 +646,19 @@ form-table-paginate.form-table-paginate.right-window {
 .form-table-div-table{
 }
 .form-table-div-row-header {
-    width: auto;
-    display: flex;
-    justify-content: space-between;
+    margin-bottom: -4px;    
 }
 .form-table-div-header {
-    /* width: 100%; */
     padding: 0 2px;
+    overflow: hidden;
+    display: inline-block;
 }
-.form-table-div-row-body {
-    width: auto;
-    display: flex;
-    justify-content: space-between;
+.form-table-div-row-body:not(:last-of-type) {
+    margin-bottom: -4px;
+    height: 100%;
 }
 .form-table-div-content {
-    /* width: 100%; */
+    display: inline-block;
+    overflow: hidden;
     padding: 0 2px;
 }
