@@ -1,56 +1,97 @@
-div.control-content-scroll .table-component .form-table-div-content.selected-cell {
-    background-color: rgb(10, 94, 107) !important;
-    color: #fff;
-    box-shadow: 0 0 4px rgba(0,0,0,.50);
-    z-index: 150;
-}
-
 div.control-content-scroll {
     width: calc(100%);
-    position: relative;
-    display: block;
-    clear: both;
 }
 
-.table-component {
-    clear: both;
-    display: block;
-}
-
-.table-component .form-table-div-table {
-    /* min-width: calc(100%);
-    width: 100%;
-    position: relative;
-    overflow: auto !important;
-    display: block;
-    border-collapse: separate;
-    border-spacing: 0 0;
-    border-radius: 0.2rem;
-    white-space: nowrap;
-    border: 1px solid #17284e20;
-    scroll-behavior: smooth; */
-
+.form-table-div-table {
     width: calc(100%);
-    position: relative;
     padding-bottom: 8px;
-    display: block;
-    border-collapse: separate;
-    border-spacing: 0 0;
     overflow: auto !important;
     border-radius: 0.2rem;
     white-space: nowrap;
     border: 1px solid #17284e20;
 }
 
-.table-component .form-table-div-table:focus {
+.form-table-div-table:focus {
     outline: 2px solid #000;
 }
 
-.table-component .form-table-div-content,
-.table-component .form-table-div-header {
+.form-table-div-row-body {
+    cursor: default !important;
+    height: 100%;
+}
+
+.form-table-div-row-body:not(.selected):hover .form-table-div-content {
+    background: rgba(0,0,0,.09);
+}
+
+.form-table-div-row-body.customized-line-rendered .form-table-div-content {
+    background-color: rgba(0,0,0,.05);
+}
+
+.form-table-div-row-body:not(:last-child) .form-table-div-content {
+    border-bottom: 1px solid #17284e20;
+}
+
+.form-table-div-row-body.selected .form-table-div-content {
+    background: rgb(190, 229, 235) !important;
+}
+
+
+
+.form-table-div-content {
+    min-height: 35px;
+    line-height: 35px;
+    padding: 0 .6em;
+    position: relative;
+    color: #000;
+    background-color: #fff;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.form-table-div-row-body .form-table-div-content.selected-cell {
+    background-color: rgb(10, 94, 107) !important;
+    box-shadow: 0 0 4px rgba(0,0,0,.50);
+    color: #fff;
+    z-index: 150;
+}
+
+
+
+
+
+
+.table-component .form-table-div-content:active,
+.table-component .form-table-div-row-header:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.form-table-div-header {
+    color: #000;
+    height: 40px;
+    line-height: 2;
+    padding: 2px .6em;
+    position: relative;
+    background: #fff;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    border-bottom: 1px solid #17284e20;
+    font-weight: 800;
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+.form-table-div-content,
+.form-table-div-header {
     margin: 0;
     user-select: none;
 }
+
+
 
 .table-component .dragging-border-left {
     border-left: 3px solid #777 !important;
@@ -68,69 +109,15 @@ div.control-content-scroll {
     flex: 1 1 auto;
 }
 
-.table-component .form-table-div-row-header .form-table-div-header /* ,
-.table-component tfoot .form-table-div-header */ {
-    color: #000;
-    height: 40px;
-    line-height: 2;
-    padding: 2px .6em;
-    position: relative;
-    background: #fff;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    border-bottom: 1px solid #17284e20;
-    /* -webkit-transition: width 0.7s ease; */
-    /* transition: width 0.7s ease; */
-    font-weight: 800;
-    cursor: move;
-    /* fallback if grab cursor is unsupported */
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
-}
 
-.table-component .form-table-div-content:active,
-.table-component .form-table-div-row-header:active {
-    cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-}
 
-.table-component .form-table-div-row-body .form-table-div-content {
-    color: #000;
-    --rectangleWidth: 100%;
-    --rectangleHeight: 35px;
-    --rectangleTop: 0;
-    --rectangleBottom: 0;
-    min-height: 35px;
-    height: 35px;
-    line-height: 35px;
-    position: relative;
-    background-color: #fff;
-    padding: 0 .6em;
-    overflow: hidden;
-    box-sizing: border-box;
-}
 
-.table-component .form-table-div-row-body:not(:last-child) .form-table-div-content {
-    border-bottom: 1px solid #17284e20;
-}
 
-.table-component .form-table-div-row-body {
-    cursor: default !important;
-}
 
-.table-component .form-table-div-row-body.selected .form-table-div-content {
-    background: rgb(190, 229, 235) !important ;
-}
 
-.table-component .form-table-div-row-body:not(.selected):hover .form-table-div-content {
-    background: rgba(0,0,0,.09);
-}
 
-.table-component .form-table-div-row-body.customized-line-rendered .form-table-div-content {
-    background-color: rgba(0,0,0,.05);
-}
+
+
 
 .table-component .draggable-indicator {
     position: absolute;
