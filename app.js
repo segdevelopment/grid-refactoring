@@ -142,9 +142,13 @@ Vue.component("form-table", {
     },
   },
   methods: {
-    processar(f) {
+    processar(currentFields) {
       const t = [];
-      const x = JSON.parse(localStorage.getItem(`form-table-${this.nome}`)) || f;
+      const fieldsFromStorage = JSON.parse(localStorage.getItem(`form-table-${this.nome}`));
+
+      if(fieldsFromStorage) {
+        return fieldsFromStorage;
+      }
 
       let bodyCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: this.itens.filter((j, k) => k < 10).map(j => j[i.key] || '').map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
       let headerCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: String(i.key).length}))
@@ -152,252 +156,25 @@ Vue.component("form-table", {
       let finalsSizes = fieldsNames.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
       let total = finalsSizes.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
       let columnsSize = []
+   
 
       fieldsNames.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i)
+  
 
-      console.log(bodyCellsSize, headerCellsSize, finalsSizes, total)
-
-      x.forEach((i, index) => {
+      currentFields.forEach((i, index) => {
+        let k = currentFields.find((j) => j.key === i.key);
+        
         i.style = i.style || {}
 
-        let k = x.find((j) => j.key === i.key);
-
         if (k) {
-          i.minWidth = `calc(${columnsSize[fieldsNames[index]]}%)`
           i.style.width = `calc(${columnsSize[fieldsNames[index]]}%)`
           i.style.textAlign = index === 0 ? 'right' : 'left'
-          t.push({...k, width: i.width})
+          t.push({...k})
         }
       })
 
       return t;
-    },
-    selecionar(linha, indiceLinha, coluna, indiceColuna) {
-      Vue.set(this.selecao, "linha", indiceLinha);
-      Vue.set(this.selecao, "coluna", indiceColuna);
-
-      if (this.fnSelecionado) {
-        this.fnSelecionado(linha);
-      }
-
-      if (this.fnColunaSelecionada) {
-        this.fnColunaSelecionada(linha, coluna);
-      }
-    },
-    focus() {
-      this.selecao.ativo = true;
-    },
-    blur() {
-      this.selecao.ativo = false;
-    },
-    columnResize(event) {
-      const column = event.target.parentElement;
-      const coluna = this.colunas.find(
-        (c) => c.key === column.attributes.key.value
-      );
-
-      const x = event.clientX;
-      const w = parseInt(window.getComputedStyle(column).width);
-
-      const mousemove = (e) => {
-        Vue.set(coluna, "width", w - x + e.clientX);
-      };
-
-      const mouseup = () => {
-        localStorage.setItem(
-          `form-table-${this.nome}`,
-          JSON.stringify(this.colunas)
-        );
-        document.removeEventListener("mousemove", mousemove);
-        document.removeEventListener("mouseup", mouseup);
-      };
-
-      document.addEventListener("mousemove", mousemove);
-      document.addEventListener("mouseup", mouseup);
-    },
-    columnReorder(event) {
-      this.selecao.column = event.target.parentElement;
-      this.selecao.row = this.selecao.column.parentElement;
-      this.selecao.table = this.selecao.row.parentElement.parentElement;
-      this.selecao.draggingColumnIndex = [].slice
-        .call(this.selecao.row.children)
-        .indexOf(this.selecao.column);
-
-      // Determine the mouse position
-      this.selecao.x = event.clientX - this.selecao.column.offsetLeft;
-      this.selecao.y = event.clientY - this.selecao.column.offsetTop;
-
-      const swap = (nodeA, nodeB) => {
-        const parentA = nodeA.parentNode;
-        const siblingA =
-          nodeA.nextSibling === nodeB ? nodeA : nodeA.nextSibling;
-        nodeB.parentNode.insertBefore(nodeA, nodeB);
-        parentA.insertBefore(nodeB, siblingA);
-      };
-
-      const isOnLeft = function (nodeA, nodeB) {
-        const rectA = nodeA.getBoundingClientRect();
-        const rectB = nodeB.getBoundingClientRect();
-        return rectA.left + rectA.width / 2 < rectB.left + rectB.width / 2;
-      };
-
-      const cloneTable = (table) => {
-        const rect = table.getBoundingClientRect();
-
-        this.selecao.list = document.createElement("div");
-        this.selecao.list.classList.add("clone-list");
-        this.selecao.list.style.position = "absolute";
-        this.selecao.list.style.left = `${rect.left}px`;
-        this.selecao.list.style.top = `${rect.top}px`;
-        table.parentNode.insertBefore(this.selecao.list, table);
-
-        table.style.visibility = "hidden";
-
-        const originalCells = [].slice.call(
-          table.querySelectorAll(".div-table-cell")
-        );
-
-        const originalHeaderCells = [].slice.call(
-          table.querySelectorAll(".div-table-head")
-        );
-        const numColumns = originalHeaderCells.length;
-
-        // Loop through the header cells
-        originalHeaderCells.forEach((headerCell, headerIndex) => {
-          const width = parseInt(window.getComputedStyle(headerCell).width);
-
-          // Create a new table from given row
-          const item = document.createElement("div");
-          item.classList.add("draggable");
-
-          const newTable = document.createElement("div");
-          newTable.setAttribute("class", "clone-table");
-          newTable.style.width = `${width}px`;
-
-          // Header
-          const th = headerCell.cloneNode(true);
-          let newRow = document.createElement("div");
-          newRow.appendChild(th);
-          newTable.appendChild(newRow);
-
-          const cells = originalCells.filter(
-            (c, idx) => (idx - headerIndex) % numColumns === 0
-          );
-
-          cells.forEach((cell) => {
-            const r = cell.getBoundingClientRect();
-
-            const newCell = cell.cloneNode(true);
-            newCell.style.width = `${r.width}px`;
-            newRow = document.createElement("div");
-            newRow.style.height = `${r.height}px`;
-            newRow.appendChild(newCell);
-            newTable.appendChild(newRow);
-          });
-
-          item.appendChild(newTable);
-          this.selecao.list.appendChild(item);
-          console.log(this.selecao.list, item);
-        });
-      };
-
-      const mousemove = (e) => {
-        if (!this.selecao.isDraggingStarted) {
-          this.selecao.isDraggingStarted = true;
-
-          cloneTable(this.selecao.table);
-
-          this.selecao.draggingEle = [].slice.call(this.selecao.list.children)[
-            this.selecao.draggingColumnIndex
-            ];
-          this.selecao.draggingEle.classList.add("dragging");
-
-          this.selecao.placeholder = document.createElement("div");
-          this.selecao.placeholder.classList.add("placeholder");
-          this.selecao.draggingEle.parentNode.insertBefore(
-            this.selecao.placeholder,
-            this.selecao.draggingEle.nextSibling
-          );
-          this.selecao.placeholder.style.width = `${this.selecao.draggingEle.offsetWidth}px`;
-        }
-
-        this.selecao.draggingEle.style.position = "absolute";
-        this.selecao.draggingEle.style.top = `${this.selecao.draggingEle.offsetTop + e.clientY - this.selecao.y}px`;
-        this.selecao.draggingEle.style.left = `${this.selecao.draggingEle.offsetLeft + e.clientX - this.selecao.x}px`;
-
-        this.selecao.x = e.clientX;
-        this.selecao.y = e.clientY;
-
-        const prevEle = this.selecao.draggingEle.previousElementSibling;
-        const nextEle = this.selecao.placeholder.nextElementSibling;
-
-        if (prevEle && isOnLeft(this.selecao.draggingEle, prevEle)) {
-          swap(this.selecao.placeholder, this.selecao.draggingEle);
-          swap(this.selecao.placeholder, prevEle);
-          return;
-        }
-
-        if (nextEle && isOnLeft(nextEle, this.selecao.draggingEle)) {
-          swap(nextEle, this.selecao.placeholder);
-          swap(nextEle, this.selecao.draggingEle);
-        }
-      };
-
-      const mouseup = (e) => {
-        const endColumnIndex = [].slice
-          .call(this.selecao.list.children)
-          .indexOf(this.selecao.draggingEle);
-        this.selecao.isDraggingStarted = false;
-
-        console.log(this.selecao.placeholder);
-
-        this.selecao.placeholder && this.selecao.placeholder.parentElement.removeChild(this.selecao.placeholder);
-        this.selecao.list && this.selecao.list.parentNode.removeChild(this.selecao.list);
-
-        this.selecao.draggingEle.classList.remove("dragging");
-        this.selecao.draggingEle.style.removeProperty("top");
-        this.selecao.draggingEle.style.removeProperty("left");
-        this.selecao.draggingEle.style.removeProperty("position");
-
-        document.removeEventListener("mousemove", mousemove);
-        document.removeEventListener("mouseup", mouseup);
-
-        this.colunas.splice(endColumnIndex, 0, this.colunas.splice(this.selecao.draggingColumnIndex, 1)[0]);
-        this.selecao.table.style.removeProperty("visibility");
-
-        localStorage.setItem(`form-table-${this.nome}`, JSON.stringify(this.colunas));
-      };
-
-      // Attach the listeners to `document`
-      document.addEventListener("mousemove", mousemove);
-      document.addEventListener("mouseup", mouseup);
-    },
-    key(event) {
-      console.log(event);
-      if (event.type === "keydown") {
-        if (event.key === "ArrowDown") {
-          this.selecao.linha = Math.min(
-            this.selecao.linha + 1,
-            this.itens.length - 1
-          );
-        } else if (event.key === "ArrowUp") {
-          this.selecao.linha = Math.max(this.selecao.linha - 1, 0);
-        } else if (event.key === "ArrowRight") {
-          this.selecao.coluna = Math.min(
-            this.selecao.coluna + 1,
-            this.colunas.length - 1
-          );
-        } else if (event.key === "ArrowLeft") {
-          this.selecao.coluna = Math.max(this.selecao.coluna - 1, 0);
-        }
-      }
-
-      if (event.key !== "Tab") {
-        event.stopImmediatePropagation();
-        event.stopPropagation();
-        event.preventDefault();
-      }
-    },
+    },    
 
     // navigation
     habilitaEventos() {
@@ -811,6 +588,7 @@ Vue.component("form-table", {
       let width = 0;
       let left = 0;
 
+      
       this.table.querySelectorAll(".form-table-div-header.column-selected").forEach((el) => {
         if (!left) left = el.offsetLeft;
         width += el.offsetWidth;
@@ -1015,6 +793,8 @@ Vue.component("form-table", {
         element.style.top = `${element.offsetTop}px`;
 
         this.$set(this.colunas[this.resize.colIndex].style, "width", `calc(${newSize}px)`);
+
+        localStorage.setItem(`form-table-${this.nome}`, JSON.stringify(this.colunas))
       }
     },
     defineResizePosition() {
@@ -1357,8 +1137,6 @@ Vue.component("form-table", {
 
         rows.forEach( k => {
           k.style.marginBottom = `${-(k.offsetHeight - k.children[0].offsetHeight)}px`
-  
-          console.log(k.style.marginBottom)
         })
       }
     },
@@ -1417,7 +1195,7 @@ const vm = new Vue({
         itens: [
           {
             id: 1,
-            nome: "Daniel",
+            nome: "l",
             descricao: "Um simples teste de tamanho",
             sobrenome: "Sampaio",
             nascimento: "03/12/2001",
@@ -1428,7 +1206,7 @@ const vm = new Vue({
           },
           {
             id: 2,
-            nome: "Lucas",
+            nome: "i",
             descricao: "Um simples teste de tamanho",
             sobrenome: "Pereira",
             nascimento: "03/12/2001",
@@ -1439,7 +1217,51 @@ const vm = new Vue({
           },
           {
             id: 3,
-            nome: "Fernando",
+            nome: "p",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "7",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "u",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "i",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: ";",
             descricao: "Um simples teste de tamanho",
             sobrenome: "Vieira",
             nascimento: "03/12/2001",
@@ -1583,6 +1405,138 @@ const vm = new Vue({
           {
             id: 4,
             nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "fd",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "er",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "tr",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "gf",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "h",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "u",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "Feroinando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "oi",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "lk",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "mn",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "q",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "w",
             descricao: "Um simples teste de tamanho",
             sobrenome: "Kallyo",
             nascimento: "03/12/2001",
