@@ -1,3 +1,5 @@
+Vue.config.devtools = true
+
 Vue.component("form-table-paginate", {
   template: "#form-table-paginate-template",
   props: {
@@ -487,6 +489,8 @@ Vue.component("form-table", {
       const paginate = this.paginate;
       const table = this.table;
       const set = this.$set;
+
+      console.log(paginate)
 
       return {
         moveRowRight() {
