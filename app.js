@@ -602,16 +602,19 @@ Vue.component("form-table", {
     handleStartDraggable() {
       let width = 0;
       let left = 0;
+      let top = 0
 
 
       this.table.querySelectorAll(".form-table-div-header.column-selected").forEach((el) => {
         if (!left) left = el.offsetLeft;
         width += el.offsetWidth;
+        top += el.offsetTop
       });
 
       const fakeColumn = this.table.querySelector(".draggable-indicator");
       fakeColumn.style.width = `${width}px`;
       fakeColumn.style.left = `${left}px`;
+      fakeColumn.style.top = `${top}px`;
       fakeColumn.style.height = `${this.table.offsetHeight - 2}px`;
 
       this.$set(this.draggable, "started", true);
@@ -711,7 +714,7 @@ Vue.component("form-table", {
     },
     handleIndicatorPosition(fakeColumn) {
       const rect = fakeColumn.getBoundingClientRect();
-      const elements = document.elementsFromPoint(rect.x, fakeColumn.getBoundingClientRect().top);
+      const elements = document.elementsFromPoint(rect.x, rect.y);console.log(elements)
 
       if (elements) {
         let cell = elements.find((el) => el.classList.contains('form-table-div-header'));
