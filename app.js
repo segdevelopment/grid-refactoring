@@ -490,8 +490,6 @@ Vue.component("form-table", {
       const table = this.table;
       const set = this.$set;
 
-      console.log(paginate)
-
       return {
         moveRowRight() {
           if (selectedCell.initNavigation && selectedRow.onlyRow && !columnsSelected.hasSelection) {
