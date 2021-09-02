@@ -277,16 +277,6 @@ Vue.component("form-table", {
       }
     },*/
 
-    // scroll
-    /* noScroll() {
-      window.scrollTo(0, 0);
-    },
-    disableScroll() {
-      window.addEventListener('scroll', this.noScroll);
-    },
-    enableScroll() {
-      window.removeEventListener('scroll', this.noScroll);
-    }, */
     scrollTo(el, sliderEl, direction, range = 0) {
       const elRect = el.getBoundingClientRect();
       const sliderElRect = sliderEl.getBoundingClientRect();
@@ -294,7 +284,6 @@ Vue.component("form-table", {
       if (direction == "right") {
         if (range) {
           let to = range;
-
           sliderEl.scrollLeft += to;
 
         } else {
@@ -505,7 +494,7 @@ Vue.component("form-table", {
             const lastCell = table.querySelector('.form-table-div-row-header').lastElementChild
 
             if (parseInt(lastCell.getBoundingClientRect().right) > table?.getBoundingClientRect().right) {
-              scrollTo(currentSelectedRow, table, "right", 200)
+              scrollTo(currentSelectedRow, table, "right", 1)
 
 
             } else {
@@ -541,7 +530,7 @@ Vue.component("form-table", {
         },
         moveRowLeft() {
           if (selectedCell.initNavigation && selectedRow.onlyRow && !columnsSelected.hasSelection) {
-            if (currentSelectedRow?.getBoundingClientRect().left < table?.getBoundingClientRect().left) scrollTo(currentSelectedRow, table, "left", 200);
+            if (currentSelectedRow?.getBoundingClientRect().left < table?.getBoundingClientRect().left) scrollTo(currentSelectedRow, table, "left", 1);
 
             else paginate.active > 1 && changePage(paginate.active, "decrement")
 
@@ -1564,7 +1553,7 @@ const vm = new Vue({
 
       ],
     },
-    atalhos: [{key: 16 }, {key: 0}], //passar 16 shift ou 17 ctrl ou []
+    atalhos: [{key: 16 }, {key: 17}], //passar 16 shift ou 17 ctrl ou []
   },
   methods: {
     linhaSelecionada(item) {
