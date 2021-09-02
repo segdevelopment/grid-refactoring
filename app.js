@@ -10,6 +10,9 @@ Vue.component("form-table-paginate", {
   }
 });
 
+const SHIFT_CODE = 16;
+const CONTROL_CODE = 17;
+
 Vue.component("form-table", {
   template: "#form-table-template",
   props: {
@@ -31,7 +34,7 @@ Vue.component("form-table", {
       filter: {hideRows: {}, column: {}, opened: false, allChecked: null},
       paginate: {pages: 4, active: 1, allPages: null, rightShow: false, currentPageContent: null},
       selectedCell: {row: 0, column: 0, initNavigation: false},
-      selectedRow: {row: 0, onlyRow: false},
+      selectedRow: {row: 0, onlyRow: true},
       tableFocused: false,
       menuShowIndex: null,
       hoverEl: null,
@@ -198,10 +201,10 @@ Vue.component("form-table", {
             this.navegacaoDeCelulas(e)
             this.navegacaoDeLinhas(e)
 
-            if (e.keyCode === 16)
+            if (e.keyCode === SHIFT_CODE)
               this.$set(this.selectedRow, 'onlyRow', !this.selectedRow.onlyRow)
 
-            if (e.keyCode === 17) {
+            if (e.keyCode === CONTROL_CODE) {
               this.$set(this.columnsSelected, 'hasSelection', !this.columnsSelected.hasSelection)
 
               if (this.columnsSelected.hasSelection) this.selectColumn([parseInt(this.selectedCell.column)], true)
@@ -227,10 +230,10 @@ Vue.component("form-table", {
         this.navegacaoDeCelulas(e)
         this.navegacaoDeLinhas(e)
 
-        if (e.keyCode === 16)
+        if (e.keyCode === SHIFT_CODE)
           this.$set(this.selectedRow, 'onlyRow', !this.selectedRow.onlyRow)
 
-        if (e.keyCode === 17) {
+        if (e.keyCode === CONTROL_CODE) {
           // mudar a função handleUnselectColumn para receber um parâmetro index
           this.$set(this.columnsSelected, 'hasSelection', !this.columnsSelected.hasSelection)
 
