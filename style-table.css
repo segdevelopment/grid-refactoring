@@ -1,8 +1,12 @@
+/* table */
 div.control-content-scroll {
     width: calc(100%);
+    font-family: initial;
+    font-size: inherit;
 }
 
 .form-table-div-table {
+    scroll-behavior: smoth;
     width: calc(100%);
     padding-bottom: 8px;
     overflow: auto !important;
@@ -216,12 +220,12 @@ div.control-content-scroll {
     box-sizing: border-box;
     display: inline-block;
     position: relative;
-    line-height: 35px;
-    min-height: 35px;
+    line-height: 29px;
+    min-height: 29px;
     overflow: hidden;
     padding: 0 .6em;
     color: #000;
-    height: 35px;
+    height: 29px;
 }
 
 .form-table-div-row-body .form-table-div-content.selected-cell {
