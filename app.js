@@ -213,7 +213,6 @@ Vue.component("form-table", {
       }
     },
     setarAtalho() {
-        console.log("atalhos habilitados", this.atalhos.find(a => a.key === CONTROL_CODE))
         if (this.atalhos.find(a => a.key === SHIFT_CODE))
             this.$set(this.selectedRow, 'onlyRow', !this.selectedRow.onlyRow)
 
@@ -1180,7 +1179,6 @@ Vue.component("form-table", {
   },
   created() {
       this.setarAtalho();
-    console.log("atalhos", this.atalhos)
   },
   mounted() {
     this.afterTableMounted();
