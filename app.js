@@ -19,6 +19,7 @@ Vue.component("form-table", {
     linhas: {type: Number, required: false, default: () => 20},
     fnSelecionado: {type: Function, required: false},
     fnColunaSelecionada: {type: Function, required: false},
+    atalhos: {type: Array, required: false, default: () => []}
   },
   data() {
     return {
@@ -142,6 +143,16 @@ Vue.component("form-table", {
     },
   },
   methods: {
+    focus() {
+      this.$refs['tableComponent'].focus()
+      this.$set(this.selectedCell, 'initNavigation', true)
+      this.disableScroll()
+    },
+    blur() {
+      this.$refs['tableComponent'].blur()
+      this.$set(this.selectedCell, 'initNavigation', false)
+      this.enableScroll();
+    },
     processar(currentFields) {
       const t = [];
       const fieldsFromStorage = JSON.parse(localStorage.getItem(`form-table-${this.nome}`));
@@ -156,14 +167,14 @@ Vue.component("form-table", {
       let finalsSizes = fieldsNames.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
       let total = finalsSizes.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
       let columnsSize = []
-   
+
 
       fieldsNames.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i)
-  
+
 
       currentFields.forEach((i, index) => {
         let k = currentFields.find((j) => j.key === i.key);
-        
+
         i.style = i.style || {}
 
         if (k) {
@@ -174,10 +185,38 @@ Vue.component("form-table", {
       })
 
       return t;
-    },    
+    },
 
+    keypress(event) {
+      let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altkey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (i.key === event.key))
+
+      if (atalho && atalho.funcao) {
+        atalho.funcao(event)
+        event.preventDefault()
+
+      } else if (!event.altKey && !event.ctrlKey && !event.shiftKey && event.type === 'keydown' && (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'ArrowRight' || event.key === 'ArrowLeft' || event.key === ' ')) {
+        const {moveRowUp, moveRowDown, moveRowRight, moveRowLeft} = this.keyboardRowsListener();
+
+        if (event.key === 'ArrowDown')
+          moveRowDown()
+
+        else if (event.key === 'ArrowUp')
+          moveRowUp()
+
+        else if (event.key === 'ArrowRight')
+          moveRowRight()
+
+        else if (event.key === 'ArrowLeft')
+          moveRowLeft()
+
+        event.stopPropagation()
+
+      } else if (this.$parent.keypress) {
+        this.$parent.keypress(event)
+      }
+    },
     // navigation
-    habilitaEventos() {
+    /*habilitaEventos() {
       this.$el.onfocus = e => {
         this.$el.onkeydown = e => {
           (!this.tableFocused && this.paginate.pages > 1) && this.navegacaoDePaginas(e)
@@ -192,7 +231,7 @@ Vue.component("form-table", {
         this.table.onkeydown = e => {
           if (this.tableFocused && this.paginate.currentPageContent.length != 0) {
 
-            this.navegacaoDeCelulas(e)
+            // this.navegacaoDeCelulas(e)
             this.navegacaoDeLinhas(e)
 
             if (e.keyCode === 16)
@@ -235,7 +274,7 @@ Vue.component("form-table", {
             this.selectColumn([parseInt(this.selectedCell.column)], true)
         }
       }
-    },
+    },*/
 
     // scroll
     disableScroll() {
@@ -303,7 +342,7 @@ Vue.component("form-table", {
     },
 
     // pages navigation
-    navegacaoDePaginas(e) {
+    /*navegacaoDePaginas(e) {
       const navKeys = {right: 39, left: 37};
       const {nextPage, previousPage} = this.keyboardPagesListener();
 
@@ -339,7 +378,7 @@ Vue.component("form-table", {
           paginate.active > 1 && changePage(paginate.active, "decrement");
         }
       }
-    },
+    },*/
 
     // cells navigation
     navegacaoDeCelulas(e) {
@@ -447,7 +486,7 @@ Vue.component("form-table", {
     },
 
     // rows navigation
-    navegacaoDeLinhas(e) {
+    /*navegacaoDeLinhas(e) {
       const navKeys = {up: 38, down: 40, right: 39, left: 37};
       const {moveRowUp, moveRowDown, moveRowRight, moveRowLeft} = this.keyboardRowsListener();
 
@@ -469,7 +508,7 @@ Vue.component("form-table", {
             moveRowDown();
             break;
         }
-    },
+    },*/
     keyboardRowsListener() {
       const currentSelectedColumn = this.table.querySelector('.column-selected');
       const changeSelectedRowToSibling = this.changeSelectedRowToSibling;
@@ -588,7 +627,7 @@ Vue.component("form-table", {
       let width = 0;
       let left = 0;
 
-      
+
       this.table.querySelectorAll(".form-table-div-header.column-selected").forEach((el) => {
         if (!left) left = el.offsetLeft;
         width += el.offsetWidth;
@@ -979,19 +1018,19 @@ Vue.component("form-table", {
       e.stopPropagation()
       e.preventDefault()
       if (colIndex === this.menuShowIndex) colIndex = null;
-      
+
       if (colIndex !== null) {
         let el = e.target.closest("div.form-table-div-header");
         let dropdownEl = document.querySelectorAll('.table-component .dropdown-filter-menu')[colIndex];
         let rightPosition = el.offsetLeft + el.offsetWidth;
-        
+
         dropdownEl.style.left = rightPosition - dropdownEl.offsetWidth - 162 + 'px';
-        
+
         if (parseInt(dropdownEl.style.left.split('p')[0]) < 0 ) {
           dropdownEl.style.left = 0;
         }
       }
-      
+
       this.menuShowIndex = colIndex;
     },
 
@@ -1161,7 +1200,7 @@ Vue.component("form-table", {
       });
 
       this.$nextTick(() => {
-        this.habilitaEventos();
+        // this.habilitaEventos();
         this.defineResizePosition();
         this.applyShadowOnCell();
       });
@@ -1558,5 +1597,8 @@ const vm = new Vue({
         console.log(item[coluna.nome]);
       },
     },
-    mounted() {},
+    mounted() {
+    console.log(this.$refs.teste.$refs.tableComponent)
+
+    },
 });

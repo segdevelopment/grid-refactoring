@@ -349,7 +349,7 @@ div.control-content-scroll {
     border-bottom-left-radius: calc(0.3rem - 1px);
 }
 
-.modal-body {
+.modal-body-filter {
     flex: 1 1 auto;
     position: relative;
     max-height: 500px;
@@ -358,7 +358,7 @@ div.control-content-scroll {
     font-family: Gill Sans, sans-serif;
 }
 
-.modal-body li {
+.modal-body-filter li {
     margin: 6px 0;
 }
 
@@ -554,4 +554,12 @@ form-table-paginate.form-table-paginate.right-window {
     z-index: 2;
     background-color: rgba(15, 130, 148, 0.151);
     border-color: rgba(15, 130, 148, 0.151);
+}
+
+.form-window {
+    width: 100%;
+    border: 1px solid lightgrey;
+    border-radius: 4px;
+    padding: 2px;
+    margin-top: 2px;
 }

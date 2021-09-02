@@ -21,13 +21,15 @@
 
   <body>
     <div id="app">
-        <form-table nome="table" :itens="registros.itens" :fields="registros.colunas" :linhas="10" fn-row-selected="selecionarPedido" ></form-table>
+        <form-table nome="table" tabindex="0" :itens="registros.itens" :fields="registros.colunas" ref='teste' :linhas="10" fn-row-selected="selecionarPedido" ></form-table>
+
+        
     </div>
 
     <script type="text/x-template" id="form-table-template">
-        <div class="control-content-scroll" tabindex="0">
+        <div class="control-content-scroll" tabindex="-1">
             <div class="table-component">
-                <div class="form-table-div-table" ref="tableComponent" tabindex="0">
+                <div class="form-table-div-table" ref="tableComponent" tabindex="0" @keydown="keypress" @keyup="keypress" @keypress="keypress" @focus="focus" @blur="blur">
                     <transition name="fade">
                         <div :class="['draggable-indicator', {hide: !draggable.showIndicator}]"></div>
                     </transition>
@@ -69,7 +71,7 @@
                                 <button type="button" @click="closeModalFilter" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                             </header>
     
-                            <section class="modal-body" ref="modalFiltersBody">
+                            <section class="modal-body-filter" ref="modalFiltersBody">
                                 <ul class="unstyled" v-if="filter.opened">
                                     <input class="styled-checkbox all" :id="`styled-checkbox-all`" type="checkbox" :value="'all'" :checked="filter.allChecked" @change="checkAll(true)"/>
                                     <label :for="`styled-checkbox-all`">Todos</label>
