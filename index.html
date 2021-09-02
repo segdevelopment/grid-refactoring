@@ -21,7 +21,7 @@
 
   <body>
     <div id="app">
-        <form-table nome="table" :itens="registros.itens" :fields="registros.colunas" :linhas="10" fn-row-selected="selecionarPedido" ></form-table>
+        <form-table nome="table" :itens="registros.itens" :fields="registros.colunas" :linhas="10" fn-row-selected="selecionarPedido" :atalhos="atalhos"></form-table>
     </div>
 
     <script type="text/x-template" id="form-table-template">

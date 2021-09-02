@@ -22,6 +22,7 @@ Vue.component("form-table", {
     linhas: {type: Number, required: false, default: () => 20},
     fnSelecionado: {type: Function, required: false},
     fnColunaSelecionada: {type: Function, required: false},
+    atalhos: { type: Array}
   },
   data() {
     return {
@@ -200,15 +201,6 @@ Vue.component("form-table", {
 
             this.navegacaoDeCelulas(e)
             this.navegacaoDeLinhas(e)
-
-            if (e.keyCode === SHIFT_CODE)
-              this.$set(this.selectedRow, 'onlyRow', !this.selectedRow.onlyRow)
-
-            if (e.keyCode === CONTROL_CODE) {
-              this.$set(this.columnsSelected, 'hasSelection', !this.columnsSelected.hasSelection)
-
-              if (this.columnsSelected.hasSelection) this.selectColumn([parseInt(this.selectedCell.column)], true)
-            }
           }
         }
 
@@ -219,6 +211,17 @@ Vue.component("form-table", {
           this.enableScroll()
         }
       }
+    },
+    setarAtalho() {
+        console.log("atalhos habilitados", this.atalhos.find(a => a.key === CONTROL_CODE))
+        if (this.atalhos.find(a => a.key === SHIFT_CODE))
+            this.$set(this.selectedRow, 'onlyRow', !this.selectedRow.onlyRow)
+
+        if (this.atalhos.find(a => a.key === CONTROL_CODE)) {
+            this.$set(this.columnsSelected, 'hasSelection', !this.columnsSelected.hasSelection)
+
+            if (this.columnsSelected.hasSelection) this.selectColumn([parseInt(this.selectedCell.column)], true)
+        }
     },
     verification(e) {
       if (!this.tableFocused && this.paginate.pages > 1) {
@@ -1176,7 +1179,8 @@ Vue.component("form-table", {
 
   },
   created() {
-
+      this.setarAtalho();
+    console.log("atalhos", this.atalhos)
   },
   mounted() {
     this.afterTableMounted();
@@ -1555,6 +1559,7 @@ const vm = new Vue({
 
       ],
     },
+    atalhos: [{key: 16 }, {key: 0}], //passar 16 shift ou 17 ctrl ou []
   },
   methods: {
     linhaSelecionada(item) {
@@ -1566,3 +1571,4 @@ const vm = new Vue({
   },
   mounted() {},
 });
+
