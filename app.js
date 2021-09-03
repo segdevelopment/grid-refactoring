@@ -13,31 +13,31 @@ Vue.component("form-table-paginate", {
 Vue.component("form-table", {
   template: "#form-table-template",
   props: {
-    nome: {type: String, required: true},
-    fields: {type: Array, required: true},
-    itens: {type: Array, required: true},
-    linhas: {type: Number, required: false, default: () => 20},
-    fnSelecionado: {type: Function, required: false},
-    fnColunaSelecionada: {type: Function, required: false},
-    atalhos: {type: Array, required: false, default: () => []}
-
+    nome:                { type: String, required: true    },
+    fields:              { type: Array, required: true     },
+    itens:               { type: Array, required: true     },
+    fnSelecionado:       { type: Function, required: false },
+    fnColunaSelecionada: { type: Function, required: false },
+    atalhos:             { type: Array, required: false, default: () => []     },
+    linhas:              { type: Number, required: false, default: () => 20    },
+    onlyRow:             { type: Boolean, required: false, default: () => true },
+    hasSelection:        { type: Boolean, required: false, default: () => false},
   },
   data() {
     return {
-      colunas: this.processar(this.fields),
-      selecao: {ativo: false, item: null, linha: 0, coluna: 0},
-      draggable: {showIndicator: false, started: false, observer: null, newIndex: null, running: null, indicatorIndex: null, firstClientX: null},
-      resize: {started: false, colIndex: null, offset: null, width: null},
-      columnsSelected: {indexes: [], hasSelection: false},
-      ordering: {order: null, column: null},
-      filter: {hideRows: {}, column: {}, opened: false, allChecked: null},
-      paginate: {pages: 4, active: 1, allPages: null, rightShow: false, currentPageContent: null},
-      selectedCell: {row: 0, column: 0, initNavigation: false},
-      selectedRow: {row: 0, onlyRow: true},
-      tableFocused: false,
-      menuShowIndex: null,
-      hoverEl: null,
-      table: null,
+      colunas:         this.processar(this.fields),
+      tableFocused:    false,
+      menuShowIndex:   null,
+      hoverEl:         null,
+      table:           null,
+      columnsSelected: { indexes: [] },
+      ordering:        { order: null, column: null },
+      navigation:      { navigationOn: false, row: 0, column: 0, },
+      selecao:         { ativo: false, item: null, linha: 0, coluna: 0 },
+      filter:          { hideRows: {}, column: {}, opened: false, allChecked: null },
+      resize:          { started: false, colIndex: null, offset: null, width: null },
+      paginate:        { pages: 4, active: 1, allPages: null, rightShow: false, currentPageContent: null },
+      draggable:       { showIndicator: false, started: false, observer: null, newIndex: null, running: null, indicatorIndex: null, firstClientX: null },
     }
   },
   watch: {
@@ -51,39 +51,26 @@ Vue.component("form-table", {
         this.defineRowsMargin()
         this.colunas = this.processar(this.fields);
       }
+    }, 
+    "paginate.active": function () {
+      let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
+
+      this.emitCurrentRegister(currentRegister)
     },
     "filter.opened": function (val) {
       if (!val) {
         this.$set(this.filter, "column", {});
       }
     },
-    "paginate.currentPageContent": function () {
-      const currentSelectedCell = document.querySelector('.selected-cell');
-      const currentSelectedColumn = document.querySelector('.column-selected');
-      const sliderEl = this.$refs.tableComponent;
+    "navigation.row": function (newValue) {
+      let currentRegister = (this.paginate.currentPageContent[newValue]);
 
+      this.emitCurrentRegister(currentRegister)
+    },
+    "paginate.currentPageContent": function (newValue) {
       this.defineResizePosition();
       this.defineRowsMargin();
-
-      if (this.selectedCell.initNavigation && !this.selectedRow.onlyRow && !this.columnsSelected.hasSelection) {
-
-        if (currentSelectedCell?.getBoundingClientRect().left < sliderEl?.getBoundingClientRect().left) this.scrollTo(currentSelectedCell, sliderEl, "left");
-
-
-        if (currentSelectedCell?.getBoundingClientRect().right >  sliderEl?.getBoundingClientRect().right) this.scrollTo(currentSelectedCell, sliderEl, "right");
-
-      } else if (this.selectedCell.initNavigation && this.selectedRow.onlyRow && this.columnsSelected.hasSelection) {
-
-        if (currentSelectedColumn?.getBoundingClientRect().left < sliderEl?.getBoundingClientRect().left) this.scrollTo(currentSelectedColumn, sliderEl, "left");
-
-
-        if (currentSelectedColumn?.getBoundingClientRect().right >  sliderEl?.getBoundingClientRect().right) this.scrollTo(currentSelectedColumn, sliderEl, "right");
-
-      }
-
-
-    }
-
+    },
   },
   computed: {
     customItems() {
@@ -127,33 +114,23 @@ Vue.component("form-table", {
       if (hideRows[column.key]?.length) {
         items = items.map((item) => {
           item.exists = hideRows[column.key].includes(
-              this.toSlug(item[column.key])
+            this.toSlug(item[column.key])
           );
           return {...item, checked: !item.exists};
         });
       }
 
       return items
-          .map((item) => ({
-            key: item[column.key],
-            checked: item.checked === undefined ? true : item.checked,
-          }))
-          .filter((item, index, self) => {
-            return self.map((el) => el.key).indexOf(item.key) === index;
-          });
+        .map((item) => ({
+          key: item[column.key],
+          checked: item.checked === undefined ? true : item.checked,
+        }))
+        .filter((item, index, self) => {
+          return self.map((el) => el.key).indexOf(item.key) === index;
+        });
     },
   },
   methods: {
-    focus() {
-      this.$refs['tableComponent'].focus()
-      this.$set(this.selectedCell, 'initNavigation', true)
-      /* this.disableScroll() */
-    },
-    blur() {
-      this.$refs['tableComponent'].blur()
-      this.$set(this.selectedCell, 'initNavigation', false)
-      /* this.enableScroll(); */
-    },
     processar(currentFields) {
       const t = [];
       const fieldsFromStorage = JSON.parse(localStorage.getItem(`form-table-${this.nome}`));
@@ -180,34 +157,42 @@ Vue.component("form-table", {
 
         if (k) {
           i.style.width = `calc(${columnsSize[fieldsNames[index]]}%)`
-          i.style.textAlign = index === 0 ? 'right' : 'left'
           t.push({...k})
         }
       })
 
       return t;
     },
-    keypress(event) {
-      let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altkey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (i.key === event.key))
+    focus() {
+      this.$refs['tableComponent'].focus()
+      this.$set(this.navigation, 'navigationOn', true)
+      this.emitCurrentRegister(this.paginate.currentPageContent[this.navigation.row])
+    },
+    blur() {
+      this.$refs['tableComponent'].blur()
+      this.$set(this.navigation, 'navigationOn', false)
+    },
+    
 
+    keypress(event) {
+      let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altkey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (event.type === (i.type || 'keyup')) && (i.key === event.key))
+      
       if (atalho && atalho.funcao) {
-        atalho.funcao(event)
-        event.preventDefault()
+        atalho.funcao(this.paginate.currentPageContent[this.navigation.row], event)
 
       } else if (!event.altKey && !event.ctrlKey && !event.shiftKey && event.type === 'keydown' && (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'ArrowRight' || event.key === 'ArrowLeft' || event.key === ' ')) {
-        const {moveRowUp, moveRowDown, moveRowRight, moveRowLeft} = this.keyboardRowsListener();
 
         if (event.key === 'ArrowDown')
-          moveRowDown()
+          this.moveDown()
 
         else if (event.key === 'ArrowUp')
-          moveRowUp()
+          this.moveUp()
 
         else if (event.key === 'ArrowRight')
-          moveRowRight()
+          this.moveRight()
 
         else if (event.key === 'ArrowLeft')
-          moveRowLeft()
+          this.moveLeft()
 
         event.stopPropagation()
 
@@ -215,376 +200,69 @@ Vue.component("form-table", {
         this.$parent.keypress(event)
       }
     },
-    // navigation
-    /*habilitaEventos() {
-      this.$el.onfocus = e => {
-        this.$el.onkeydown = e => {
-          (!this.tableFocused && this.paginate.pages > 1) && this.navegacaoDePaginas(e)
-        }
-      }
+    moveDown() {
+      if (this.navigation.navigationOn && this.onlyRow) {
+        let nextRow = this.table?.querySelector('.selected')?.nextElementSibling
+        let nextRowIndex = nextRow == null ? this.navigation.row : Number(nextRow.dataset.index)
 
-      this.table.onfocus = e => {
-        this.$set(this.selectedCell, 'initNavigation', true)
-        this.tableFocused = true
-        this.disableScroll()
-
-        this.table.onkeydown = e => {
-          if (this.tableFocused && this.paginate.currentPageContent.length != 0) {
-
-            // this.navegacaoDeCelulas(e)
-            this.navegacaoDeLinhas(e)
-          }
-        }
-
-        this.table.onblur = e => {
-          this.$set(this.selectedCell, 'initNavigation', false)
-          this.$set(this.columnsSelected, 'hasSelection', false)
-          this.tableFocused = false
-          this.enableScroll()
-        }
+        this.setNavigation(nextRowIndex, this.navigation.column)
       }
     },
-    setarAtalho() {
-        if (this.atalhos.find(a => a.key === SHIFT_CODE))
-            this.$set(this.selectedRow, 'onlyRow', !this.selectedRow.onlyRow)
+    moveUp() {
+      if (this.navigation.navigationOn && this.onlyRow) {
+        let nextRow = this.table?.querySelector('.selected')?.previousElementSibling
+        let nextRowIndex = nextRow == null ? this.navigation.row : Number(nextRow.dataset.index)
 
-        if (this.atalhos.find(a => a.key === CONTROL_CODE)) {
-            this.$set(this.columnsSelected, 'hasSelection', !this.columnsSelected.hasSelection)
-
-            if (this.columnsSelected.hasSelection) this.selectColumn([parseInt(this.selectedCell.column)], true)
-        }
-    },
-    verification(e) {
-      if (!this.tableFocused && this.paginate.pages > 1) {
-        // apenas a navegação de páginas
-        this.navegacaoDePaginas(e)
-
-      } else if (this.tableFocused && this.paginate.currentPageContent.length != 0) {
-        // apenas célular e linhas
-        this.navegacaoDeCelulas(e)
-        this.navegacaoDeLinhas(e)
-
-        if (e.keyCode === SHIFT_CODE)
-          this.$set(this.selectedRow, 'onlyRow', !this.selectedRow.onlyRow)
-
-        if (e.keyCode === CONTROL_CODE) {
-          // mudar a função handleUnselectColumn para receber um parâmetro index
-          this.$set(this.columnsSelected, 'hasSelection', !this.columnsSelected.hasSelection)
-
-          if (this.columnsSelected.hasSelection)
-            this.selectColumn([parseInt(this.selectedCell.column)], true)
-        }
+        this.setNavigation(nextRowIndex, this.navigation.column)
       }
-    },*/
+    },
+    moveRight() {
+      if (this.navigation.navigationOn && this.onlyRow) {
+        let hasScroll = this.table?.querySelector('.form-table-div-header:last-of-type').getBoundingClientRect().right > this.table.getBoundingClientRect().right;
 
-    scrollTo(el, sliderEl, direction, range = 0) {
-      const elRect = el.getBoundingClientRect();
-      const sliderElRect = sliderEl.getBoundingClientRect();
-
-      if (direction == "right") {
-        if (range) {
-          let to = range;
-          sliderEl.scrollLeft += to;
+        if (hasScroll) {
+          this.scrolling();
 
         } else {
-          let to = elRect.right - sliderElRect.right;
+          let rowExistInNextPage = (this.paginate.allPages[this.paginate.active]?.length > this.navigation.row)
+          let existNextPage = (!!this.paginate.allPages[this.paginate.active])
 
-          sliderEl.scrollLeft += to;
+          if (existNextPage) {
+            if (rowExistInNextPage) {
+              this.setNavigation(this.navigation.row, 0)
+              this.changePage(this.paginate.active, 'increment')
+  
+            } else {
+              let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
+  
+              this.setNavigation(lastResgister, 0)
+              this.changePage(this.paginate.active, 'increment')
+            }
+          }
         }
+      }
+    },
+    moveLeft() {
+      if (this.navigation.navigationOn && this.onlyRow) {
+        let hasScroll = this.table?.querySelector('.form-table-div-header:first-of-type').getBoundingClientRect().left < this.table.getBoundingClientRect().left;
 
-      } else if (direction == "left") {
-        if (range) {
-          let to = range;
-
-          sliderEl.scrollLeft -= to;
+        if (hasScroll) {
+          this.scrolling();
 
         } else {
-          let to = sliderElRect.left - elRect.left;
+          let lastColumnIndex = Array.from(this.table?.querySelectorAll('.form-table-div-header')).length - 1;
 
-          sliderEl.scrollLeft -= to;
+          this.setNavigation(this.navigation.row, lastColumnIndex)
+          this.changePage(this.paginate.active, 'decrement')
         }
       }
     },
-
-    // pages navigation
-    /*navegacaoDePaginas(e) {
-      const navKeys = {right: 39, left: 37};
-      const {nextPage, previousPage} = this.keyboardPagesListener();
-
-      if (!this.selectedCell.initNavigation && this.paginate.pages > 1)
-        switch (e.keyCode) {
-          case navKeys.right:
-            nextPage()
-            break;
-
-          case navKeys.left:
-            previousPage()
-            break;
-        }
+    setNavigation(row, column) {
+      this.$set(this.navigation, 'row', row);
+      this.$set(this.navigation, 'column', column);
     },
-    keyboardPagesListener() {
-      const selectedCell = this.selectedCell;
-      const selectedRow = this.selectedRow;
-      const changePage = this.changePage;
-      const paginate = this.paginate;
-      const set = this.$set;
-
-      return {
-        nextPage() {
-          if (!selectedCell.initNavigation && paginate.allPages[paginate.allPages.length - 1].length < selectedRow.row + 1 && paginate.currentPageContent === paginate.allPages[[paginate.allPages.length - 2]]) {
-            set(selectedCell, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
-            set(selectedRow, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
-            paginate.active < paginate.pages && changePage(paginate.active, "increment");
-          } else {
-            paginate.active < paginate.pages && changePage(paginate.active, "increment");
-          }
-        },
-        previousPage() {
-          paginate.active > 1 && changePage(paginate.active, "decrement");
-        }
-      }
-    },*/
-
-    // cells navigation
-    navegacaoDeCelulas(e) {
-      const navKeys = {up: 38, down: 40, right: 39, left: 37};
-      const {moveRight, moveLeft, moveDown, moveUp} = this.keyboardCellsListener();
-
-      if (this.selectedCell.initNavigation && !this.selectedRow.onlyRow)
-        switch (e.keyCode) {
-          case navKeys.right:
-            moveRight();
-            break;
-
-          case navKeys.left:
-            moveLeft();
-            break;
-
-          case navKeys.down:
-            moveDown();
-            break;
-
-          case navKeys.up:
-            moveUp();
-            break;
-        }
-    },
-    keyboardCellsListener() {
-      const currentSelectedCell = this.table.querySelector('.selected-cell');
-      const changeSelectedCellToSibling = this.changeSelectedCellToSibling;
-      const columnsSelected = this.columnsSelected;
-      const selectedCell = this.selectedCell;
-      const selectColumn = this.selectColumn;
-      const selectedRow = this.selectedRow;
-      const changePage = this.changePage;
-      const paginate = this.paginate;
-      const scrollTo = this.scrollTo;
-      const sliderEl = this.table;
-      const set = this.$set;
-
-      return {
-        moveRight() {
-          let nextSelectedCell = currentSelectedCell.nextElementSibling;
-
-          if (Number(currentSelectedCell.dataset.index) === (currentSelectedCell.parentElement.childElementCount - 1) && paginate.active < paginate.pages) {
-            if ((paginate.allPages[paginate.allPages.length - 1].length < (selectedCell.row + 1) && paginate.allPages[paginate.allPages.length - 1].length < (selectedRow.row + 1)) && (paginate.currentPageContent === paginate.allPages[paginate.allPages.length - 2])) {
-              set(selectedCell, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
-              set(selectedRow, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
-              changePage(paginate.active, "increment")
-
-            } else {
-              changePage(paginate.active, "increment")
-            }
-          }
-
-          if (nextSelectedCell?.getBoundingClientRect().right > sliderEl?.getBoundingClientRect().right) scrollTo(nextSelectedCell, sliderEl, "right")
-
-          if (columnsSelected.hasSelection && nextSelectedCell != null)
-            selectColumn([parseInt(Array.from(nextSelectedCell.parentElement.children).indexOf(nextSelectedCell))], true)
-
-          nextSelectedCell != null && changeSelectedCellToSibling(nextSelectedCell);
-        },
-        moveLeft() {
-          let nextSelectedCell = currentSelectedCell.previousElementSibling;
-
-          if (Number(currentSelectedCell.dataset.index) === 0 && paginate.active > 1)
-            changePage(paginate.active, "decrement")
-
-          if (columnsSelected.hasSelection && nextSelectedCell !== null)
-            selectColumn([parseInt(Array.from(nextSelectedCell.parentElement.children).indexOf(nextSelectedCell))], true)
-
-          if (nextSelectedCell?.getBoundingClientRect().right < sliderEl?.getBoundingClientRect().right) scrollTo(nextSelectedCell, sliderEl, "left")
-
-          nextSelectedCell != null && changeSelectedCellToSibling(nextSelectedCell);
-        },
-        moveDown() {
-          let rowId = currentSelectedCell?.parentElement.nextElementSibling?.dataset.index
-          let nextSelectedRow = currentSelectedCell?.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')[rowId]
-
-          if (nextSelectedRow != null) {
-            let currentSelectedCellId = Array.from(currentSelectedCell.parentElement.children).indexOf(currentSelectedCell)
-            let nextSelectedCell = nextSelectedRow?.children[currentSelectedCellId]
-
-            if (nextSelectedCell != null) { changeSelectedCellToSibling(nextSelectedCell) };
-          }
-        },
-        moveUp() {
-          let rowId = currentSelectedCell?.parentElement.previousElementSibling.dataset.index
-          let nextSelectedRow = currentSelectedCell.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')[rowId]
-
-          if (nextSelectedRow != null) {
-            let currentSelectedCellId = Array.from(currentSelectedCell?.parentElement.children).indexOf(currentSelectedCell)
-            let nextSelectedCell = nextSelectedRow?.children[currentSelectedCellId]
-
-            if (nextSelectedCell != null)  { changeSelectedCellToSibling(nextSelectedCell) };
-          }
-        },
-      };
-    },
-    changeSelectedCellToSibling(nextSelectedCell) {
-      let rowIndex = nextSelectedCell?.parentElement.dataset.index
-      let columnIndex = nextSelectedCell?.dataset.index
-
-      this.$set(this.selectedCell, "row", rowIndex);
-      this.$set(this.selectedCell, "column", columnIndex);
-      console.log('row: ' + rowIndex, 'column: ' + columnIndex)
-    },
-
-    // rows navigation
-    /*navegacaoDeLinhas(e) {
-      const navKeys = {up: 38, down: 40, right: 39, left: 37};
-      const {moveRowUp, moveRowDown, moveRowRight, moveRowLeft} = this.keyboardRowsListener();
-
-      if (this.selectedCell.initNavigation)
-        switch (e.keyCode) {
-          case navKeys.right:
-            moveRowRight();
-            break;
-
-          case navKeys.left:
-            moveRowLeft();
-            break;
-
-          case navKeys.up:
-            moveRowUp();
-            break;
-
-          case navKeys.down:
-            moveRowDown();
-            break;
-        }
-    },*/
-    keyboardRowsListener() {
-      const currentSelectedColumn = this.table.querySelector('.column-selected');
-      const changeSelectedRowToSibling = this.changeSelectedRowToSibling;
-      const currentSelectedRow = this.table.querySelector('.selected');
-      const columnsSelected = this.columnsSelected;
-      const selectedCell = this.selectedCell;
-      const selectColumn = this.selectColumn;
-      const selectedRow = this.selectedRow;
-      const changePage = this.changePage;
-      const scrollTo = this.scrollTo;
-      const paginate = this.paginate;
-      const table = this.table;
-      const set = this.$set;
-
-      return {
-        moveRowRight() {
-          if (selectedCell.initNavigation && selectedRow.onlyRow && !columnsSelected.hasSelection) {
-            const lastCell = table.querySelector('.form-table-div-row-header').lastElementChild
-
-            if (parseInt(lastCell.getBoundingClientRect().right) > table?.getBoundingClientRect().right) {
-              scrollTo(currentSelectedRow, table, "right", 1)
-
-
-            } else {
-              if (paginate.allPages[paginate.allPages.length - 1].length < selectedRow.row + 1 && paginate.currentPageContent === paginate.allPages[[paginate.allPages.length - 2]]) {
-                set(selectedCell, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
-                set(selectedRow, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
-                paginate.active < paginate.pages && changePage(paginate.active, "increment")
-
-              } else {
-                paginate.active < paginate.pages && changePage(paginate.active, "increment")
-              }
-            }
-
-          } else if (selectedCell.initNavigation && selectedRow.onlyRow && columnsSelected.hasSelection) {
-            let nextSelectedColumn = currentSelectedColumn.nextElementSibling;
-
-            if (Number(currentSelectedColumn.dataset.index) === (currentSelectedColumn.parentElement.childElementCount - 1) && paginate.active < paginate.pages) {
-
-              if ((paginate.allPages[paginate.allPages.length - 1].length < (selectedCell.row + 1) && paginate.allPages[paginate.allPages.length - 1].length < (selectedRow.row + 1)) && (paginate.currentPageContent === paginate.allPages[paginate.allPages.length - 2])) {
-                set(selectedCell, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
-                set(selectedRow, 'row', paginate.allPages[paginate.allPages.length - 1].length - 1)
-                changePage(paginate.active, "increment")
-
-              } else {
-                changePage(paginate.active, "increment")
-              }
-            }
-            if (nextSelectedColumn?.getBoundingClientRect().right > table?.getBoundingClientRect().right) scrollTo(nextSelectedColumn, table, "right");
-
-            nextSelectedColumn !== null && selectColumn([parseInt(nextSelectedColumn.dataset.index)], true)
-
-          }
-        },
-        moveRowLeft() {
-          if (selectedCell.initNavigation && selectedRow.onlyRow && !columnsSelected.hasSelection) {
-            if (currentSelectedRow?.getBoundingClientRect().left < table?.getBoundingClientRect().left) scrollTo(currentSelectedRow, table, "left", 1);
-
-            else paginate.active > 1 && changePage(paginate.active, "decrement")
-
-          } else if (selectedCell.initNavigation && selectedRow.onlyRow && columnsSelected.hasSelection) {
-            let nextSelectedColumn = currentSelectedColumn.previousElementSibling;
-
-            if (Number(currentSelectedColumn.dataset.index) === 0 && paginate.active > 1) changePage(paginate.active, "decrement")
-
-            if (nextSelectedColumn?.getBoundingClientRect().left < table?.getBoundingClientRect().left) scrollTo(nextSelectedColumn, table, "left");
-
-            nextSelectedColumn !== null && selectColumn([parseInt(nextSelectedColumn.dataset.index)], true)
-          }
-        },
-        moveRowUp() {
-          let rowId = currentSelectedRow.previousElementSibling?.dataset.index
-          let nextSelectedRow = table.querySelectorAll('.form-table-div-row-body')[rowId]
-
-          nextSelectedRow != null && set(selectedCell, 'row', rowId);
-
-          nextSelectedRow != null && changeSelectedRowToSibling(nextSelectedRow);
-        },
-        moveRowDown() {
-          let rowId = currentSelectedRow.nextElementSibling?.dataset.index
-          let nextSelectedRow = table.querySelectorAll('.form-table-div-row-body')[rowId]
-
-          nextSelectedRow != null && set(selectedCell, 'row', rowId);
-
-          nextSelectedRow != null && changeSelectedRowToSibling(nextSelectedRow);
-        }
-      }
-    },
-    changeSelectedRowToSibling(nextSelectedRow) {
-      const rowIndex = Array.from(this.table.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedRow)
-
-      this.$set(this.selectedRow, 'row', rowIndex)
-    },
-
-    // cells and rows navigation by click
-    clickNavigationListener(e) {
-      e.target.closest('div.form-table-div-table').focus()
-
-      this.mouseNavigation(e);
-    },
-    mouseNavigation(e) {
-      let nextSelectedCell = e.target.tagName === "SPAN" ? e.target.parentElement : e.target;
-      let columnIndex = Array.from(nextSelectedCell?.parentElement.querySelectorAll('.form-table-div-content')).indexOf(nextSelectedCell)
-      let rowIndex = Array.from(nextSelectedCell?.parentElement.parentElement.querySelectorAll('.form-table-div-row-body')).indexOf(nextSelectedCell.parentElement)
-
-      this.changeSelectedCellToSibling(nextSelectedCell);
-
-      if (this.columnsSelected.hasSelection)
-        this.selectColumn([parseInt(columnIndex)], true)
-
-      this.$set(this.selectedRow, 'row', rowIndex);
+    scrolling() {
+      console.log('scrolling')
     },
 
     // to drag columns
@@ -613,7 +291,7 @@ Vue.component("form-table", {
       const minLeft = this.table.offsetLeft;
 
       const observer = new MutationObserver((e) =>
-          this.handleObserverMoveColumns(e, minLeft, maxRight)
+        this.handleObserverMoveColumns(e, minLeft, maxRight)
       );
 
       observer.observe(fakeColumn, {attributes: true});
@@ -667,7 +345,7 @@ Vue.component("form-table", {
         }
 
         const columnsSelected = this.colunas.filter(
-            (column) => column.selected
+          (column) => column.selected
         );
 
         let columns = [];
@@ -692,8 +370,8 @@ Vue.component("form-table", {
           return final;
         }, []);
 
-        this.$set(this.selectedCell, 'column', newIndexes)
-        this.$set(this.columnsSelected, "indexes", newIndexes);
+        this.$set(this.navigation, 'column', newIndexes)
+        this.$set(this, "indexes", newIndexes);
         this.$forceUpdate();
         this.$nextTick(() => this.handleColumnsHiddenAfterDrag());
       }
@@ -713,7 +391,7 @@ Vue.component("form-table", {
           const measuresCell = cell.getBoundingClientRect();
           let className = null;
           let nextIndex = parseInt(cell.dataset.index);
-          const {indexes} = this.columnsSelected;
+          const {indexes} = this;
           const min = Math.min(...indexes);
           const max = Math.max(...indexes) + 1;
           const middle = indexes.filter((n) => n !== min && n !== max);
@@ -748,7 +426,7 @@ Vue.component("form-table", {
     },
     removeBorderIndicator() {
       this.table.querySelectorAll(".form-table-div-content, .form-table-div-header").forEach((el) =>
-          el.classList.remove("dragging-border-left", "dragging-border-right", "new-index-table")
+        el.classList.remove("dragging-border-left", "dragging-border-right", "new-index-table")
       );
     },
 
@@ -846,14 +524,14 @@ Vue.component("form-table", {
 
       if (position === "left") {
         const otherEl = this.colunas
-            .slice(0, key)
-            .reverse()
-            .find((c, i) => i < key && !c.hide && c.hideRight);
+          .slice(0, key)
+          .reverse()
+          .find((c, i) => i < key && !c.hide && c.hideRight);
         if (otherEl)
           otherIndex = this.colunas.findIndex((c) => c.key === otherEl.key);
       } else if (this.colunas[key].hideRight) {
         otherIndex = this.colunas.findIndex(
-            (c, i) => i > key && !c.hide && c.hideLeft
+          (c, i) => i > key && !c.hide && c.hideLeft
         );
       }
 
@@ -864,9 +542,9 @@ Vue.component("form-table", {
       if (column === this.ordering.column) this.removeOrderBy();
 
       let keyRight = this.colunas
-          .slice(0, key)
-          .reverse()
-          .findIndex((column) => !column.hide);
+        .slice(0, key)
+        .reverse()
+        .findIndex((column) => !column.hide);
       if (keyRight === 0) keyRight = 1;
 
       let keyLeft = this.colunas.slice(key).findIndex((column) => !column.hide);
@@ -892,9 +570,9 @@ Vue.component("form-table", {
         keyHidden = this.colunas.slice(key).findIndex((column) => column.hide);
       } else {
         keyHidden = this.colunas
-            .slice(0, key)
-            .reverse()
-            .findIndex((column) => column.hide);
+          .slice(0, key)
+          .reverse()
+          .findIndex((column) => column.hide);
       }
 
       if (keyHidden === 0) keyHidden = 1;
@@ -907,10 +585,10 @@ Vue.component("form-table", {
         const extremityStr = !toLeft ? "hideRight" : "hideLeft";
 
         while (
-            extremity < 0 &&
-            keyHidden > 0 &&
-            this.colunas.length > keyHidden + 1
-            ) {
+          extremity < 0 &&
+          keyHidden > 0 &&
+          this.colunas.length > keyHidden + 1
+          ) {
           keyHidden = toLeft ? keyHidden + 1 : keyHidden - 1;
           if (this.colunas[keyHidden][extremityStr]) extremity = keyHidden;
           else keysHidden.push(keyHidden);
@@ -930,9 +608,9 @@ Vue.component("form-table", {
     handleColumnsHiddenAfterDrag() {
       this.colunas = this.colunas.map((column, key) => {
         column.hideLeft =
-            !column.hide && this.colunas[key - 1] && this.colunas[key - 1].hide;
+          !column.hide && this.colunas[key - 1] && this.colunas[key - 1].hide;
         column.hideRight =
-            !column.hide && this.colunas[key + 1] && this.colunas[key + 1].hide;
+          !column.hide && this.colunas[key + 1] && this.colunas[key + 1].hide;
         return column;
       });
     },
@@ -942,7 +620,7 @@ Vue.component("form-table", {
       const element = e.target.dataset.index ? e.target : e.target.parentElement;
 
       if (element?.classList.contains('form-table-div-header')) {
-        if (this.columnsSelected.indexes.includes(parseInt(index)) && this.columnsSelected.hasSelection) {
+        if (this.indexes.includes(parseInt(index)) && this.hasSelection) {
           this.handleStartDraggable();
 
         } else {
@@ -952,7 +630,7 @@ Vue.component("form-table", {
       }
     },
     selectColumn(index, reset) {
-      const indexes = reset ? index : [...new Set([...this.columnsSelected.indexes, index])];
+      const indexes = reset ? index : [...new Set([...this.indexes, index])];
 
 
       this.colunas = this.colunas.map((column, key) => {
@@ -961,13 +639,13 @@ Vue.component("form-table", {
         return column;
       });
 
-      this.$set(this.selectedCell, 'column', indexes[0])
+      this.$set(this.navigation, 'column', indexes[0])
 
-      this.$set(this.columnsSelected, "hasSelection", true);
-      this.$set(this.columnsSelected, "indexes", indexes);
+      this.$set(this, "hasSelection", true);
+      this.$set(this, "indexes", indexes);
     },
     handleUnselectColumn(e) {
-      if (this.columnsSelected.indexes.length) {
+      if (this.indexes.length) {
         if (!e.target.closest("div.form-table-div-header")) {
           this.colunas = this.colunas.map((column) => {
             column.selected = false;
@@ -975,8 +653,8 @@ Vue.component("form-table", {
             return column;
           });
           document.removeEventListener("click", this.handleUnselectColumn);
-          this.$set(this.columnsSelected, "indexes", []);
-          this.$set(this.columnsSelected, "hasSelection", false);
+          this.$set(this, "indexes", []);
+          this.$set(this, "hasSelection", false);
         }
       }
     },
@@ -1024,17 +702,17 @@ Vue.component("form-table", {
         if (this.paginate.currentPageContent === undefined) this.changePage(this.paginate.allPages.indexOf(this.paginate.allPages[this.paginate.allPages.length - 1]) + 1)
       }, 10)
 
-      this.$set(this.selectedCell, 'row', 0)
-      this.$set(this.selectedCell, 'cell', 0)
+      this.$set(this.navigation, 'row', 0)
+      this.$set(this.navigation, 'cell', 0)
       this.$set(this.selectedRow, 'row', 0)
 
       this.closeModalFilter();
     },
     toSlug(text) {
       return `${text}`
-          .toLowerCase()
-          .replace(/[^\w ]+/g, "")
-          .replace(/ +/g, "-");
+        .toLowerCase()
+        .replace(/[^\w ]+/g, "")
+        .replace(/ +/g, "-");
     },
     checkAll(isAll) {
       const allChecked = isAll ? !this.filter.allChecked : this.$refs.modalFiltersBody.querySelectorAll("input:not(.all):not(:checked)").length === 0;
@@ -1051,31 +729,16 @@ Vue.component("form-table", {
 
     // Pagination
     changePage(page, action) {
-      const elRect = document.querySelectorAll('.form-table-div-header')[(document.querySelector('.form-table-div-row-header').childElementCount - 1)]
 
-      if (action) {
-        if (action === "increment"){
-          page++
+      if (action && action === "increment" && this.paginate.active < this.paginate.pages) {
+        page++
 
-          this.$set(this.selectedCell, "column", 0)
+      } else if (action && action === "decrement" && (this.paginate.active - 1) > 0) {
+        page--
 
-          if ((this.selectedCell.initNavigation && this.columnsSelected.hasSelection) || (this.selectedCell.initNavigation && this.columnsSelected.hasSelection)) this.selectColumn([0], true)
+      }
 
-          if (this.selectedCell.initNavigation) this.$refs.tableComponent.scrollLeft = 0
-
-        } else if (action === "decrement") {
-          page--
-
-          this.$set(this.selectedCell, "column", document.querySelector('.form-table-div-table .form-table-div-row-body').childElementCount - 1)
-
-          if (this.selectedCell.initNavigation && this.columnsSelected.hasSelection) this.selectColumn([(document.querySelector('.form-table-div-table .form-table-div-row-body').childElementCount - 1)], true)
-
-          if (this.selectedCell.initNavigation) this.$refs.tableComponent.scrollLeft = (elRect.offsetLeft + elRect.offsetWidth) - (this.$refs.tableComponent.offsetLeft + this.$refs.tableComponent.offsetWidth)
-        }
-      };
-
-      if (page !== this.paginate.active)
-        this.$set(this.paginate, "active", page);
+      if (page !== this.paginate.active) this.$set(this.paginate, "active", page);
 
 
     },
@@ -1118,26 +781,6 @@ Vue.component("form-table", {
       this.$set(this.paginate, 'currentPageContent', allPages[syncronizePagesIndex]);
     },
 
-    applyShadowOnCell() {
-      this.table.querySelectorAll('.form-table-div-content span').forEach(o => {
-        const flag = o.offsetWidth > o.parentElement.offsetWidth;
-
-        if (!!flag) {
-          const span = document.createElement('span');
-
-          span.classList.add('blur')
-
-          span.style.width = "16px"
-          span.style.height = "100%"
-          span.style.position = "absolute"
-          span.style.blur = '50px'
-          span.style.right = "0px"
-          span.style.background = "linear-gradient(270deg, #88888850, #F2F2F201"
-
-          o.parentElement.appendChild(span)
-        }
-      })
-    },
     defineRowsMargin() {
       if (this.table) {
         const rows = Array.from(this.table?.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
@@ -1146,6 +789,10 @@ Vue.component("form-table", {
           k.style.marginBottom = `${-(k.offsetHeight - k.children[0].offsetHeight)}px`
         })
       }
+    },
+
+    emitCurrentRegister(value) {
+      this.$emit('input', value)
     },
 
     // Table start
@@ -1168,16 +815,14 @@ Vue.component("form-table", {
       });
 
       this.$nextTick(() => {
-        // this.habilitaEventos();
         this.defineResizePosition();
-        this.applyShadowOnCell();
       });
     },
 
 
   },
   created() {
-      /* this.setarAtalho(); */
+    /* this.setarAtalho(); */
   },
   mounted() {
     this.afterTableMounted();
@@ -1558,15 +1203,6 @@ const vm = new Vue({
     },
     atalhos: [{key: 16 }, {key: 17}], //passar 16 shift ou 17 ctrl ou []
   },
-  methods: {
-    linhaSelecionada(item) {
-      console.log(JSON.stringify(item));
-    },
-    colunaSelecionada(item, coluna) {
-      console.log(item[coluna.nome]);
-    },
-
+  methods: {},
   mounted() {},
-  }
 });
-
