@@ -1,8 +1,7 @@
-/* table */
 div.control-content-scroll {
     width: calc(100%);
-    font-family: initial;
-    font-size: inherit;
+    font-size: 14px;
+    margin: 4px 0;
 }
 
 .form-table-div-table {
@@ -220,12 +219,12 @@ div.control-content-scroll {
     box-sizing: border-box;
     display: inline-block;
     position: relative;
-    line-height: 29px;
-    min-height: 29px;
+    line-height: 25px;
+    min-height: 25px;
     overflow: hidden;
     padding: 0 .6em;
     color: #000;
-    height: 29px;
+    height: 25px;
 }
 
 .form-table-div-row-body .form-table-div-content.selected-cell {
@@ -492,24 +491,18 @@ div.control-content-scroll {
 /*Paginate*/
 div.paginate-container {
     width: 100%;
-    margin-top: 20px;
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
 }
 
-form-table-paginate.form-table-paginate {
-    margin: 5px auto;
+.form-table-paginate {
     white-space: nowrap;
+    margin-top: 5px;
     padding: 0;
     font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif !important;
 }
 
-form-table-paginate.form-table-paginate:not(.right-window) {
-    top: 105%;
-    transform: translate(-50%, -50%);
-}
-
-form-table-paginate.form-table-paginate.right-window {
+.form-table-paginate.form-table-paginate.right-window {
     right: 1%;
 }
 
@@ -536,7 +529,7 @@ form-table-paginate.form-table-paginate.right-window {
 }
 
 .form-table-paginate ul li a {
-    padding: 0.375rem 0.75rem;
+    padding: 0.2rem 0.5rem;
     margin-left: -1px;
     position: relative;
     display: block;
