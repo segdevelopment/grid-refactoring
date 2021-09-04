@@ -21,7 +21,6 @@ Vue.component("form-table", {
     atalhos:             { type: Array, required: false, default: () => []     },
     linhas:              { type: Number, required: false, default: () => 20    },
     onlyRow:             { type: Boolean, required: false, default: () => true },
-    hasSelection:        { type: Boolean, required: false, default: () => false},
   },
   data() {
     return {
@@ -30,7 +29,7 @@ Vue.component("form-table", {
       menuShowIndex:   null,
       hoverEl:         null,
       table:           null,
-      columnsSelected: { indexes: [] },
+      columnsSelected: { indexes: [], hasSelection: false },
       ordering:        { order: null, column: null },
       navigation:      { navigationOn: false, row: 0, column: 0, },
       selecao:         { ativo: false, item: null, linha: 0, coluna: 0 },
@@ -391,7 +390,7 @@ Vue.component("form-table", {
           const measuresCell = cell.getBoundingClientRect();
           let className = null;
           let nextIndex = parseInt(cell.dataset.index);
-          const {indexes} = this;
+          const {indexes} = this.columnsSelected;
           const min = Math.min(...indexes);
           const max = Math.max(...indexes) + 1;
           const middle = indexes.filter((n) => n !== min && n !== max);
@@ -620,7 +619,7 @@ Vue.component("form-table", {
       const element = e.target.dataset.index ? e.target : e.target.parentElement;
 
       if (element?.classList.contains('form-table-div-header')) {
-        if (this.indexes.includes(parseInt(index)) && this.hasSelection) {
+        if (this.columnsSelected.indexes.includes(parseInt(index)) && this.columnsSelected.hasSelection) {
           this.handleStartDraggable();
 
         } else {
@@ -632,29 +631,29 @@ Vue.component("form-table", {
     selectColumn(index, reset) {
       const indexes = reset ? index : [...new Set([...this.indexes, index])];
 
-
       this.colunas = this.colunas.map((column, key) => {
         column.selected = indexes.includes(key) || (key > Math.min(...indexes) && key < Math.max(...indexes));
+        
 
         return column;
       });
 
       this.$set(this.navigation, 'column', indexes[0])
-
-      this.$set(this, "hasSelection", true);
-      this.$set(this, "indexes", indexes);
+      this.$set(this.columnsSelected, "hasSelection", true);
+      this.$set(this.columnsSelected, "indexes", indexes);
     },
     handleUnselectColumn(e) {
-      if (this.indexes.length) {
+      if (this.columnsSelected.indexes.length) {
         if (!e.target.closest("div.form-table-div-header")) {
           this.colunas = this.colunas.map((column) => {
             column.selected = false;
 
             return column;
           });
+
           document.removeEventListener("click", this.handleUnselectColumn);
-          this.$set(this, "indexes", []);
-          this.$set(this, "hasSelection", false);
+          this.$set(this.columnsSelected, "indexes", []);
+          this.$set(this.columnsSelected, "hasSelection", false);
         }
       }
     },
