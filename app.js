@@ -13,30 +13,30 @@ Vue.component("form-table-paginate", {
 Vue.component("form-table", {
   template: "#form-table-template",
   props: {
-    nome:                { type: String, required: true    },
-    fields:              { type: Array, required: true     },
-    itens:               { type: Array, required: true     },
-    fnSelecionado:       { type: Function, required: false },
-    fnColunaSelecionada: { type: Function, required: false },
-    atalhos:             { type: Array, required: false, default: () => []     },
-    linhas:              { type: Number, required: false, default: () => 20    },
-    onlyRow:             { type: Boolean, required: false, default: () => true },
+    nome:                { type: String,   required: true    },
+    fields:              { type: Array,    required: true    },
+    itens:               { type: Array,    required: true    },
+    fnSelecionado:       { type: Function, required: false   },
+    fnColunaSelecionada: { type: Function, required: false   },
+    atalhos:             { type: Array,    required: false, default: () => []   },
+    linhas:              { type: Number,   required: false, default: () => 20   },
+    onlyRow:             { type: Boolean,  required: false, default: () => false },
   },
   data() {
     return {
-      colunas:         this.processar(this.fields),
-      tableFocused:    false,
       menuShowIndex:   null,
       hoverEl:         null,
       table:           null,
-      columnsSelected: { indexes: [], hasSelection: false },
-      ordering:        { order: null, column: null },
-      navigation:      { navigationOn: false, row: 0, column: 0, },
-      selecao:         { ativo: false, item: null, linha: 0, coluna: 0 },
-      filter:          { hideRows: {}, column: {}, opened: false, allChecked: null },
-      resize:          { started: false, colIndex: null, offset: null, width: null },
-      paginate:        { pages: 4, active: 1, allPages: null, rightShow: false, currentPageContent: null },
-      draggable:       { showIndicator: false, started: false, observer: null, newIndex: null, running: null, indicatorIndex: null, firstClientX: null },
+      tableFocused:    false,
+      colunas:         this.processar(this.fields),
+      ordering:        { order: null,           column: null },
+      columnsSelected: { indexes: [],           hasSelection: false },
+      navigation:      { navigationOn: false,   row: 0,          column: 0 },
+      selecao:         { ativo: false,          item: null,      linha: 0,        coluna: 0 },
+      resize:          { started: false,        colIndex: null,  offset: null,    width: null },
+      filter:          { hideRows: {},          column: {},      opened: false,   allChecked: null },
+      paginate:        { pages: 4,              active: 1,       allPages: null,  rightShow: false,   currentPageContent: null },
+      draggable:       { showIndicator: false,  started: false,  observer: null,  newIndex: null,     running: null,  indicatorIndex: null, firstClientX: null },
     }
   },
   watch: {
@@ -44,7 +44,7 @@ Vue.component("form-table", {
       this.colunas = this.processar(this.fields);
     },
     itens() {
-      const rows = Array.from(this.table.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
+      const rows = Array.from(this.table.querySelectorAll(".form-table-div-row-body, .form-table-div-row-header"));
 
       if (rows) {
         this.defineRowsMargin()
@@ -138,7 +138,7 @@ Vue.component("form-table", {
         return fieldsFromStorage;
       }
 
-      let bodyCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: this.itens.filter((j, k) => k < 10).map(j => j[i.key] || '').map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
+      let bodyCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: this.itens.filter((j, k) => k < 10).map(j => j[i.key] || "").map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
       let headerCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: String(i.key).length}))
       let fieldsNames = bodyCellsSize.map(a => Object.getOwnPropertyNames(a)[0])
       let finalsSizes = fieldsNames.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
@@ -163,34 +163,34 @@ Vue.component("form-table", {
       return t;
     },
     focus() {
-      this.$refs['tableComponent'].focus()
-      this.$set(this.navigation, 'navigationOn', true)
+      this.$refs["tableComponent"].focus()
+      this.$set(this.navigation, "navigationOn", true)
       this.emitCurrentRegister(this.paginate.currentPageContent[this.navigation.row])
     },
     blur() {
-      this.$refs['tableComponent'].blur()
-      this.$set(this.navigation, 'navigationOn', false)
+      this.$refs["tableComponent"].blur()
+      this.$set(this.navigation, "navigationOn", false)
     },
     
 
     keypress(event) {
-      let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altkey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (event.type === (i.type || 'keyup')) && (i.key === event.key))
+      let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altkey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (event.type === (i.type || "keyup")) && (i.key === event.key))
       
       if (atalho && atalho.funcao) {
         atalho.funcao(this.paginate.currentPageContent[this.navigation.row], event)
 
-      } else if (!event.altKey && !event.ctrlKey && !event.shiftKey && event.type === 'keydown' && (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'ArrowRight' || event.key === 'ArrowLeft' || event.key === ' ')) {
+      } else if (!event.altKey && !event.ctrlKey && !event.shiftKey && event.type === "keydown" && (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === " ")) {
 
-        if (event.key === 'ArrowDown')
+        if (event.key === "ArrowDown")
           this.moveDown()
 
-        else if (event.key === 'ArrowUp')
+        else if (event.key === "ArrowUp")
           this.moveUp()
 
-        else if (event.key === 'ArrowRight')
+        else if (event.key === "ArrowRight")
           this.moveRight()
 
-        else if (event.key === 'ArrowLeft')
+        else if (event.key === "ArrowLeft")
           this.moveLeft()
 
         event.stopPropagation()
@@ -200,24 +200,26 @@ Vue.component("form-table", {
       }
     },
     moveDown() {
-      if (this.navigation.navigationOn && this.onlyRow) {
-        let nextRow = this.table?.querySelector('.selected')?.nextElementSibling
+      if (this.navigation.navigationOn) {
+        let nextRow = this.table?.querySelector(".selected")?.nextElementSibling
         let nextRowIndex = nextRow == null ? this.navigation.row : Number(nextRow.dataset.index)
 
         this.setNavigation(nextRowIndex, this.navigation.column)
       }
     },
     moveUp() {
-      if (this.navigation.navigationOn && this.onlyRow) {
-        let nextRow = this.table?.querySelector('.selected')?.previousElementSibling
+      if (this.navigation.navigationOn) {
+        let nextRow = this.table?.querySelector(".selected")?.previousElementSibling
         let nextRowIndex = nextRow == null ? this.navigation.row : Number(nextRow.dataset.index)
 
         this.setNavigation(nextRowIndex, this.navigation.column)
       }
     },
     moveRight() {
-      if (this.navigation.navigationOn && this.onlyRow) {
-        let hasScroll = this.table?.querySelector('.form-table-div-header:last-of-type').getBoundingClientRect().right > this.table.getBoundingClientRect().right;
+      const onlyRowNavigation = this.navigation.navigationOn && this.onlyRow;
+
+      if (onlyRowNavigation) {
+        let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
 
         if (hasScroll) {
           this.scrolling();
@@ -229,39 +231,89 @@ Vue.component("form-table", {
           if (existNextPage) {
             if (rowExistInNextPage) {
               this.setNavigation(this.navigation.row, 0)
-              this.changePage(this.paginate.active, 'increment')
+              this.changePage(this.paginate.active, "increment")
   
             } else {
               let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
   
               this.setNavigation(lastResgister, 0)
-              this.changePage(this.paginate.active, 'increment')
+              this.changePage(this.paginate.active, "increment")
             }
           }
         }
+      } else if (!onlyRowNavigation) {
+        let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
+      
+        if (hasScroll) {
+          this.setNavigation(this.navigation.row, (this.navigation.column + 1))
+
+        } else {
+          let rowExistInNextPage = (this.paginate.allPages[this.paginate.active]?.length > this.navigation.row)
+          let existNextPage = (!!this.paginate.allPages[this.paginate.active])
+
+          
+          if (this.navigation.column === (this.colunas.length - 1)) {
+            if (existNextPage) {
+              if (rowExistInNextPage) {
+                this.setNavigation(this.navigation.row, 0)
+                this.changePage(this.paginate.active, "increment")
+    
+              } else {
+                let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
+    
+                this.setNavigation(lastResgister, 0)
+                this.changePage(this.paginate.active, "increment")
+              }
+            }
+
+          } else {
+            this.setNavigation(this.navigation.row, (this.navigation.column + 1))
+          } 
+        }
+
       }
     },
     moveLeft() {
-      if (this.navigation.navigationOn && this.onlyRow) {
-        let hasScroll = this.table?.querySelector('.form-table-div-header:first-of-type').getBoundingClientRect().left < this.table.getBoundingClientRect().left;
+      const onlyRowNavigation = this.navigation.navigationOn && this.onlyRow;
+
+      if (onlyRowNavigation) {
+        let hasScroll = this.table?.querySelector(".form-table-div-header:first-of-type").getBoundingClientRect().left < this.table.getBoundingClientRect().left;
 
         if (hasScroll) {
           this.scrolling();
 
         } else {
-          let lastColumnIndex = Array.from(this.table?.querySelectorAll('.form-table-div-header')).length - 1;
+          let lastColumnIndex = Array.from(this.table?.querySelectorAll(".form-table-div-header")).length - 1;
 
           this.setNavigation(this.navigation.row, lastColumnIndex)
-          this.changePage(this.paginate.active, 'decrement')
+          this.changePage(this.paginate.active, "decrement")
         }
+      } else if (!onlyRowNavigation) {
+        let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
+      
+        if (hasScroll) {
+          this.setNavigation(this.navigation.row, (this.navigation.column - 1))
+
+        } else {
+          let existPreviousPage = (!!this.paginate.allPages[this.paginate.active - 2])
+
+          if (this.navigation.column === 0 && existPreviousPage) {
+            this.changePage(this.paginate.active, "decrement")
+            this.setNavigation(this.navigation.row, (this.colunas.length - 1))
+
+          } else if (this.navigation.column !== 0) {
+            this.setNavigation(this.navigation.row, (this.navigation.column - 1))
+          }
+        }
+
       }
     },
     setNavigation(row, column) {
-      this.$set(this.navigation, 'row', row);
-      this.$set(this.navigation, 'column', column);
+      this.$set(this.navigation, "row", row);
+      this.$set(this.navigation, "column", column);
     },
     scrolling() {
-      console.log('scrolling')
+      console.log("scrolling")
     },
 
     // to drag columns
@@ -369,7 +421,7 @@ Vue.component("form-table", {
           return final;
         }, []);
 
-        this.$set(this.navigation, 'column', newIndexes)
+        this.$set(this.navigation, "column", newIndexes)
         this.$set(this, "indexes", newIndexes);
         this.$forceUpdate();
         this.$nextTick(() => this.handleColumnsHiddenAfterDrag());
@@ -380,10 +432,10 @@ Vue.component("form-table", {
     },
     handleIndicatorPosition(fakeColumn) {
       const rect = fakeColumn.getBoundingClientRect();
-      const elements = document.elementsFromPoint(rect.x, rect.y);console.log(elements)
+      const elements = document.elementsFromPoint(rect.x, rect.y);
 
       if (elements) {
-        let cell = elements.find((el) => el.classList.contains('form-table-div-header'));
+        let cell = elements.find((el) => el.classList.contains("form-table-div-header"));
 
         if (cell && rect.x !== this.draggable.indicatorIndex) {
           const measures = rect.x - rect.width / 2;
@@ -433,7 +485,7 @@ Vue.component("form-table", {
     handleDownChangeSize(e, header, colIndex) {
       e.stopPropagation()
       this.$set(this.resize, "colIndex", colIndex);
-      this.$set(this.resize, "width", parseFloat((this.table.querySelectorAll('.form-table-div-header')[colIndex].offsetWidth).toFixed(2)));
+      this.$set(this.resize, "width", parseFloat((this.table.querySelectorAll(".form-table-div-header")[colIndex].offsetWidth).toFixed(2)));
 
       const [element] = this.$refs[`resize-${colIndex}`];
       const rect = element.getBoundingClientRect();
@@ -484,7 +536,7 @@ Vue.component("form-table", {
     defineResizePosition() {
       setTimeout(() => {
         if (!!this.table) {
-          const resizeEl = this.$el.querySelectorAll('.table-component .form-table-div-header .resize-column');
+          const resizeEl = this.$el.querySelectorAll(".table-component .form-table-div-header .resize-column");
 
           resizeEl?.forEach(resize => resize.style.top = "0px")
         }
@@ -618,7 +670,7 @@ Vue.component("form-table", {
     handleSelectColumnStarted(e, index) {
       const element = e.target.dataset.index ? e.target : e.target.parentElement;
 
-      if (element?.classList.contains('form-table-div-header')) {
+      if (element?.classList.contains("form-table-div-header")) {
         if (this.columnsSelected.indexes.includes(parseInt(index)) && this.columnsSelected.hasSelection) {
           this.handleStartDraggable();
 
@@ -638,7 +690,7 @@ Vue.component("form-table", {
         return column;
       });
 
-      this.$set(this.navigation, 'column', indexes[0])
+      this.$set(this.navigation, "column", indexes[0])
       this.$set(this.columnsSelected, "hasSelection", true);
       this.$set(this.columnsSelected, "indexes", indexes);
     },
@@ -666,12 +718,12 @@ Vue.component("form-table", {
 
       if (colIndex !== null) {
         let el = e.target.closest("div.form-table-div-header");
-        let dropdownEl = document.querySelectorAll('.table-component .dropdown-filter-menu')[colIndex];
+        let dropdownEl = document.querySelectorAll(".table-component .dropdown-filter-menu")[colIndex];
         let rightPosition = el.offsetLeft + el.offsetWidth;
 
-        dropdownEl.style.left = rightPosition - dropdownEl.offsetWidth - 162 + 'px';
+        dropdownEl.style.left = rightPosition - dropdownEl.offsetWidth - 162 + "px";
 
-        if (parseInt(dropdownEl.style.left.split('p')[0]) < 0 ) {
+        if (parseInt(dropdownEl.style.left.split("p")[0]) < 0 ) {
           dropdownEl.style.left = 0;
         }
       }
@@ -701,9 +753,9 @@ Vue.component("form-table", {
         if (this.paginate.currentPageContent === undefined) this.changePage(this.paginate.allPages.indexOf(this.paginate.allPages[this.paginate.allPages.length - 1]) + 1)
       }, 10)
 
-      this.$set(this.navigation, 'row', 0)
-      this.$set(this.navigation, 'cell', 0)
-      this.$set(this.selectedRow, 'row', 0)
+      this.$set(this.navigation, "row", 0)
+      this.$set(this.navigation, "cell", 0)
+      this.$set(this.selectedRow, "row", 0)
 
       this.closeModalFilter();
     },
@@ -720,7 +772,7 @@ Vue.component("form-table", {
         this.$refs.modalFiltersBody.querySelectorAll("input:not(.all):not(:checked)").forEach((input) => (input.checked = true));
 
       } else if (isAll) {
-        this.$refs.modalFiltersBody.querySelectorAll('input[type="checkbox"]:not(.all)').forEach((input) => (input.checked = false));
+        this.$refs.modalFiltersBody.querySelectorAll("input[type='checkbox']:not(.all)").forEach((input) => (input.checked = false));
       }
 
       this.$set(this.filter, "allChecked", allChecked);
@@ -773,16 +825,16 @@ Vue.component("form-table", {
 
       let syncronizePagesIndex = this.paginate.active - 1;
 
-      this.$set(this.paginate, 'pages', allPages.length);
+      this.$set(this.paginate, "pages", allPages.length);
 
-      this.$set(this.paginate, 'allPages', allPages);
+      this.$set(this.paginate, "allPages", allPages);
 
-      this.$set(this.paginate, 'currentPageContent', allPages[syncronizePagesIndex]);
+      this.$set(this.paginate, "currentPageContent", allPages[syncronizePagesIndex]);
     },
 
     defineRowsMargin() {
       if (this.table) {
-        const rows = Array.from(this.table?.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
+        const rows = Array.from(this.table?.querySelectorAll(".form-table-div-row-body, .form-table-div-row-header"));
 
         rows.forEach( k => {
           k.style.marginBottom = `${-(k.offsetHeight - k.children[0].offsetHeight)}px`
@@ -791,7 +843,7 @@ Vue.component("form-table", {
     },
 
     emitCurrentRegister(value) {
-      this.$emit('input', value)
+      this.$emit("input", value)
     },
 
     // Table start
@@ -800,10 +852,10 @@ Vue.component("form-table", {
         const table = this.$refs.tableComponent;
 
         if (table) {
-          const rows = Array.from(table.querySelectorAll('.form-table-div-row-body, .form-table-div-row-header'));
+          const rows = Array.from(table.querySelectorAll(".form-table-div-row-body, .form-table-div-row-header"));
 
           if (rows) {
-            setTimeout(() => this.defineRowsMargin(), 50)
+            setTimeout(() => this.defineRowsMargin(), 20)
           }
 
           this.table = table;
