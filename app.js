@@ -216,13 +216,13 @@ Vue.component("form-table", {
       }
     },
     moveRight() {
-      const onlyRowNavigation = this.navigation.navigationOn && this.onlyRow;
+      if (this.navigation.navigationOn && this.onlyRow) {
+        // this.enableScroll()
 
-      if (onlyRowNavigation) {
         let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
 
         if (hasScroll) {
-          this.scrolling();
+          this.enableScroll();
 
         } else {
           let rowExistInNextPage = (this.paginate.allPages[this.paginate.active]?.length > this.navigation.row)
@@ -241,17 +241,34 @@ Vue.component("form-table", {
             }
           }
         }
-      } else if (!onlyRowNavigation) {
+      } else if (this.navigation.navigationOn && !this.onlyRow) {
+        // this.disableScroll()
+
         let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
-      
+        let rowExistInNextPage = (this.paginate.allPages[this.paginate.active]?.length > this.navigation.row)
+        let existNextPage = (!!this.paginate.allPages[this.paginate.active])
+
         if (hasScroll) {
-          this.setNavigation(this.navigation.row, (this.navigation.column + 1))
+          this.disableScroll()
 
+          if (this.navigation.column === (this.colunas.length - 1)) {
+            if (existNextPage) {
+              if (rowExistInNextPage) {
+                this.setNavigation(this.navigation.row, 0)
+                this.changePage(this.paginate.active, "increment")
+    
+              } else {
+                let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
+    
+                this.setNavigation(lastResgister, 0)
+                this.changePage(this.paginate.active, "increment")
+              }
+            }
+
+          } else {
+            this.setNavigation(this.navigation.row, (this.navigation.column + 1))
+          }
         } else {
-          let rowExistInNextPage = (this.paginate.allPages[this.paginate.active]?.length > this.navigation.row)
-          let existNextPage = (!!this.paginate.allPages[this.paginate.active])
-
-          
           if (this.navigation.column === (this.colunas.length - 1)) {
             if (existNextPage) {
               if (rowExistInNextPage) {
@@ -274,13 +291,13 @@ Vue.component("form-table", {
       }
     },
     moveLeft() {
-      const onlyRowNavigation = this.navigation.navigationOn && this.onlyRow;
+      if (this.navigation.navigationOn && this.onlyRow) {
+        // this.enableScroll()
 
-      if (onlyRowNavigation) {
         let hasScroll = this.table?.querySelector(".form-table-div-header:first-of-type").getBoundingClientRect().left < this.table.getBoundingClientRect().left;
 
         if (hasScroll) {
-          this.scrolling();
+          this.enableScroll();
 
         } else {
           let lastColumnIndex = Array.from(this.table?.querySelectorAll(".form-table-div-header")).length - 1;
@@ -288,15 +305,22 @@ Vue.component("form-table", {
           this.setNavigation(this.navigation.row, lastColumnIndex)
           this.changePage(this.paginate.active, "decrement")
         }
-      } else if (!onlyRowNavigation) {
+      } else if (this.navigation.navigationOn && !this.onlyRow) {
+        // this.disableScroll()
+
         let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
-      
+        let existPreviousPage = (!!this.paginate.allPages[this.paginate.active - 2])
+
         if (hasScroll) {
-          this.setNavigation(this.navigation.row, (this.navigation.column - 1))
+          if (this.navigation.column === 0 && existPreviousPage) {
+            this.changePage(this.paginate.active, "decrement")
+            this.setNavigation(this.navigation.row, (this.colunas.length - 1))
+
+          } else if (this.navigation.column !== 0) {
+            this.setNavigation(this.navigation.row, (this.navigation.column - 1))
+          }
 
         } else {
-          let existPreviousPage = (!!this.paginate.allPages[this.paginate.active - 2])
-
           if (this.navigation.column === 0 && existPreviousPage) {
             this.changePage(this.paginate.active, "decrement")
             this.setNavigation(this.navigation.row, (this.colunas.length - 1))
@@ -312,9 +336,15 @@ Vue.component("form-table", {
       this.$set(this.navigation, "row", row);
       this.$set(this.navigation, "column", column);
     },
-    scrolling() {
+    enableScroll() {
       console.log("scrolling")
     },
+    disableScroll() {
+
+    },
+    /* scrolling(to) {
+      this.table?.scrollLeft += to;
+    }, */
 
     // to drag columns
     handleStartDraggable() {
@@ -415,6 +445,8 @@ Vue.component("form-table", {
         if (!setted) columns = columns.concat(columnsSelected);
 
         this.colunas = columns;
+        localStorage.setItem(`form-table-${this.nome}`, JSON.stringify(this.colunas));
+
 
         const newIndexes = columns.reduce((final, current, index) => {
           if (current.selected) final.push(index);
@@ -422,7 +454,7 @@ Vue.component("form-table", {
         }, []);
 
         this.$set(this.navigation, "column", newIndexes)
-        this.$set(this, "indexes", newIndexes);
+        this.$set(this.columnsSelected, "indexes", newIndexes);
         this.$forceUpdate();
         this.$nextTick(() => this.handleColumnsHiddenAfterDrag());
       }
