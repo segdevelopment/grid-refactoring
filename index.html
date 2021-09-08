@@ -53,9 +53,27 @@
                     </div>
     
                     <div class="form-table-div-body">
-                        <div v-for="(item, indiceLinha) in customItems" :key="item" :data-index='indiceLinha'  name="fade" is="transition-group" :class="['form-table-div-row-body', {selected: navigation.row === indiceLinha && navigation.navigationOn, 'customized-line-rendered': indiceLinha % 2 === 0}]" >
-                            <div v-for="(coluna, indiceColuna) in colunas"  :key="coluna.key" :data-index="indiceColuna" @click="setNavigation(indiceLinha, indiceColuna)" v-show="!coluna.hide" :style="coluna.style" :class="['form-table-div-content',  {'selected-cell': indiceLinha == navigation.row && indiceColuna == navigation.column && navigation.navigationOn && !onlyRow}, {'customized-line-rendered': indiceLinha % 2 == 0}, {'column-selected': coluna.selected && columnsSelected.hasSelection}, {'column-cuted': coluna.selected && draggable.started}, {left: coluna.selected && draggable.started && indiceColuna === Math.min(...columnsSelected.indexes)}, {right: coluna.selected && draggable.started && indiceColuna === Math.max(...columnsSelected.indexes)}, coluna.class]">
-                                {{ coluna.formatter ? coluna.formatter(item[coluna.key]) : item[coluna.key] }}
+                        <div v-for="(item, indiceLinha) in customItems"
+                             :key="item"
+                             :data-index='indiceLinha'
+                             name="fade" is="transition-group"
+                             :class="['form-table-div-row-body',
+                             {selected: navigation.row === indiceLinha && navigation.navigationOn,
+                             'customized-line-rendered': indiceLinha % 2 === 0}]" >
+                            <div v-for="(coluna, indiceColuna) in colunas"
+                                 :key="coluna.key"
+                                 :data-index="indiceColuna"
+                                 @click="setNavigation(indiceLinha, indiceColuna)"
+                                 v-show="!coluna.hide"
+                                 :style="coluna.style"
+                                 :class="['form-table-div-content',
+                                 {'selected-cell': indiceLinha == navigation.row && indiceColuna == navigation.column && navigation.navigationOn && !onlyRow},
+                                 {'customized-line-rendered': indiceLinha % 2 == 0},
+                                 {'column-selected': coluna.selected && columnsSelected.hasSelection},
+                                 {'column-cuted': coluna.selected && draggable.started},
+                                 {left: coluna.selected && draggable.started && indiceColuna === Math.min(...columnsSelected.indexes)},
+                                 {right: coluna.selected && draggable.started && indiceColuna === Math.max(...columnsSelected.indexes)}, coluna.class]">
+                                <span v-html="displayRecords(coluna, item)"></span>
                             </div>
                         </div>
                     </div>

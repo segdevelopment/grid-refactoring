@@ -904,6 +904,10 @@ Vue.component("form-table", {
       });
     },
 
+    displayRecords(col, item) {
+      return col.formatter ? col.formatter(item[col.key]) : item[col.key]
+    }
+
 
   },
   created() {
@@ -928,6 +932,7 @@ const vm = new Vue({
         { key: "procedimento", label: "Procedimento" },
         { key: "conclusao", label: "Conlusão" },
         { key: "descricao", label: "Descrição" },
+        { key: "icone", label: "Icone" },
       ],
       itens: [
         {
@@ -940,6 +945,7 @@ const vm = new Vue({
           data: "07/09",
           procedimento: "",
           conclusao: "Todos os procedimentos concluídos",
+          icone: "&#128737;",
         },
         {
           id: 2,
