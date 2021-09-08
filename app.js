@@ -1,3 +1,5 @@
+Vue.config.devtools = true
+
 Vue.component("form-table-paginate", {
   template: "#form-table-paginate-template",
   props: {
