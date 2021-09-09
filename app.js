@@ -42,6 +42,9 @@ Vue.component("form-table", {
     }
   },
   watch: {
+    fields() {
+      this.colunas = this.processar(this.fields)
+    },
     "paginate.active": function () {
       let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
 
@@ -925,15 +928,15 @@ const vm = new Vue({
     data: {
       registros: {
         colunas: [
-          { key: "id", label: "Id" },
-          { key: "nome", label: "Nome" },
-          { key: "sobrenome", label: "Sobrenome" },
-          { key: "nascimento", label: "Nascimento" },
-          { key: "texto", label: "Texto" },
-          { key: "data", label: "Data" },
+          { key: "id",           label: "Id"           },
+          { key: "nome",         label: "Nome"         },
+          { key: "data",         label: "Data"         },
+          { key: "texto",        label: "Texto"        },
+          { key: "conclusao",    label: "Conlusão"     },
+          { key: "sobrenome",    label: "Sobrenome"    },
+          { key: "descricao",    label: "Descrição"    },
+          { key: "nascimento",   label: "Nascimento"   },
           { key: "procedimento", label: "Procedimento" },
-          { key: "conclusao", label: "Conlusão" },
-          { key: "descricao", label: "Descrição" },
         ],
         itens: [
           {
