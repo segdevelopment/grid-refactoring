@@ -45,6 +45,9 @@ Vue.component("form-table", {
     fields() {
       this.colunas = this.processar(this.fields)
     },
+    itens() {
+      this.colunas = this.processar(this.fields)
+    },
     "paginate.active": function () {
       let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
 
@@ -137,9 +140,6 @@ Vue.component("form-table", {
 
 
       fieldsNames?.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i, 0)
-
-
-      this.columnsSize = columnsSize;
 
       currentFields?.forEach((i, index) => {
         i.style = i.style || {}
@@ -885,6 +885,21 @@ Vue.component("form-table", {
         })
       }
     },
+    
+
+    primeiro() {
+      this.emitCurrentRegister(this.paginate.allPages[0][0])
+    },
+    ultimo() {
+      this.emitCurrentRegister(this.paginate.allPages[0][(this.paginate.allPages[0].length - 1)])
+    },
+    anterior() {
+      this.emitCurrentRegister(this.currentPageContent[(this.navigation.row - 1)])
+    },
+    proximo() {
+      this.emitCurrentRegister(this.currentPageContent[(this.navigation.row + 1)])
+    },
+
     emitCurrentRegister(value) {
       value && this.$emit("input", value)
     },
