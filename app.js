@@ -42,17 +42,6 @@ Vue.component("form-table", {
     }
   },
   watch: {
-    fields() {
-      this.colunas = this.processar(this.fields);
-    },
-    itens() {
-      const rows = Array.from(this.table.querySelectorAll(".form-table-div-row-body, .form-table-div-row-header"));
-
-      if (rows) {
-        this.defineRowsMargin()
-        this.colunas = this.processar(this.fields);
-      }
-    }, 
     "paginate.active": function () {
       let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
 
@@ -110,7 +99,7 @@ Vue.component("form-table", {
     },
     filteredItems() {
       const {hideRows, column} = this.filter;
-      let items = this.itens.slice();
+      let items = this.itens?.slice();
 
       if (hideRows[column.key]?.length) {
         items = items.map((item) => {
@@ -136,20 +125,20 @@ Vue.component("form-table", {
       const t = [];
       const fieldsStylesFromStorage = JSON.parse(localStorage.getItem(`form-table-${this.nome}`));
 
-      let bodyCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: this.itens.filter((j, k) => k < 10).map(j => j[i.key] || "").map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
-      let headerCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: String(i.key).length}))
-      let fieldsNames = bodyCellsSize.map(a => Object.getOwnPropertyNames(a)[0])
-      let finalsSizes = fieldsNames.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
-      let total = finalsSizes.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
+      let bodyCellsSize = this.fields?.map(i => Object.defineProperty({}, i.key, { value: this.itens?.filter((j, k) => k < 10).map(j => j[i.key] || "").map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
+      let headerCellsSize = this.fields?.map(i => Object.defineProperty({}, i.key, { value: String(i.key).length}))
+      let fieldsNames = bodyCellsSize?.map(a => Object.getOwnPropertyNames(a)[0])
+      let finalsSizes = fieldsNames?.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
+      let total = finalsSizes?.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
       let columnsSize = []
 
 
-      fieldsNames.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i)
+      fieldsNames?.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i, 0)
 
 
       this.columnsSize = columnsSize;
 
-      currentFields.forEach((i, index) => {
+      currentFields?.forEach((i, index) => {
         i.style = i.style || {}
           
         let k = currentFields.find((j) => j.key === i.key);
@@ -166,10 +155,12 @@ Vue.component("form-table", {
       this.$refs["tableComponent"].focus()
       this.$set(this.navigation, 'navigationOn', true)
       this.emitCurrentRegister(this.paginate.currentPageContent[this.navigation.row])
+      document.querySelector("body").classList.add("noScroll")
     },
     blur() {
       this.$refs["tableComponent"].blur()
       this.$set(this.navigation, "navigationOn", false)
+      document.querySelector("body").classList.remove("noScroll")
     },
     
 
@@ -182,16 +173,16 @@ Vue.component("form-table", {
       } else if (!event.altKey && !event.ctrlKey && !event.shiftKey && event.type === "keydown" && (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === " ")) {
 
         if (event.key === "ArrowDown")
-          this.moveDown()
+          this.moveDown(event)
 
         else if (event.key === "ArrowUp")
-          this.moveUp()
+          this.moveUp(event)
 
         else if (event.key === "ArrowRight")
-          this.moveRight()
+          this.moveRight(event)
 
         else if (event.key === "ArrowLeft")
-          this.moveLeft()
+          this.moveLeft(event)
 
         event.stopPropagation()
 
@@ -201,21 +192,15 @@ Vue.component("form-table", {
     },
     moveDown() {
       if (this.navigation.navigationOn) {
-        let nextRow = this.table?.querySelector(".selected")?.nextElementSibling
-        let nextRowIndex = nextRow == null ? this.navigation.row : Number(nextRow.dataset.index)
-
-        this.setNavigation(nextRowIndex, this.navigation.column)
+        if (this.navigation.row !== (this.linhas - 1)) this.setNavigation((this.navigation.row + 1), this.navigation.column)
       }
     },
     moveUp() {
       if (this.navigation.navigationOn) {
-        let nextRow = this.table?.querySelector(".selected")?.previousElementSibling
-        let nextRowIndex = nextRow == null ? this.navigation.row : Number(nextRow.dataset.index)
-
-        this.setNavigation(nextRowIndex, this.navigation.column)
+        if (this.navigation.row !== 0) this.setNavigation((this.navigation.row - 1), this.navigation.column)
       }
     },
-    moveRight() {
+    moveRight(event) {
       const onlyRowNavigation = this.navigation.navigationOn && this.onlyRow;
       const cellAndRowNavigation = this.navigation.navigationOn && !this.onlyRow;
       const existNextPage = (!!this.paginate.allPages[this.paginate.active])
@@ -224,7 +209,8 @@ Vue.component("form-table", {
 
       if (onlyRowNavigation) {
         if (hasScroll) {
-          this.scrolling()
+          this.scrolling(250, "right")
+          event.preventDefault()
         }
 
         else if (!hasScroll) {
@@ -234,7 +220,14 @@ Vue.component("form-table", {
 
       else if (cellAndRowNavigation) {
         if (hasScroll) {
-          this.scrolling()
+          const cellOutOfVision = (this.table?.querySelector(".selected-cell").nextElementSibling?.getBoundingClientRect().right > this.table?.getBoundingClientRect().right)
+          const to = (this.table?.querySelector(".selected-cell").nextElementSibling?.getBoundingClientRect().right - this.table?.getBoundingClientRect().right)
+
+          if (cellOutOfVision) this.scrolling(to, "right")
+          
+          this.cellNavigator(existNextPage, rowExistInNextPage, "right")
+
+          event.preventDefault()
         }
 
         else if (!hasScroll) {
@@ -242,7 +235,7 @@ Vue.component("form-table", {
         }
       }
     },
-    moveLeft() {
+    moveLeft(event) {
       const onlyRowNavigation = this.navigation.navigationOn && this.onlyRow;
       const cellAndRowNavigation = this.navigation.navigationOn && !this.onlyRow;
       const existNextPage = (!!this.paginate.allPages[this.paginate.active - 2])
@@ -250,7 +243,8 @@ Vue.component("form-table", {
 
       if (onlyRowNavigation) {
         if (hasScroll) {
-          this.scrolling()
+          this.scrolling(250, "left")
+          event.preventDefault()
         }
 
         else if (!hasScroll) {
@@ -260,7 +254,14 @@ Vue.component("form-table", {
 
       else if (cellAndRowNavigation) {
         if (hasScroll) {
-          this.scrolling()
+          const cellOutOfVision = (this.table?.querySelector(".selected-cell").previousElementSibling?.getBoundingClientRect().left < this.table?.getBoundingClientRect().left)
+          const to = (this.table?.offsetLeft - this.table?.querySelector(".selected-cell").previousElementSibling?.getBoundingClientRect().left)
+
+          if (cellOutOfVision) this.scrolling(to, "left")
+          
+          this.cellNavigator(existNextPage, true, "left")
+
+          event.preventDefault()
         }
 
         else if (!hasScroll) {
@@ -274,6 +275,8 @@ Vue.component("form-table", {
           if (rowExistInNextPage) {
             this.setNavigation(this.navigation.row, 0)
             this.changePage(this.paginate.active, "increment")
+
+            setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
           }
   
           else if (!rowExistInNextPage) {
@@ -281,26 +284,33 @@ Vue.component("form-table", {
     
             this.setNavigation(lastResgister, 0)
             this.changePage(this.paginate.active, "increment")
+
+            setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
           }
         }
       }
       // Parei na navegação
       else if (direction === "left") {
         if (existNextPage) {
-          this.setNavigation(this.navigation.row, (this.fields.length - 1))
+          this.setNavigation(this.navigation.row, (this.fields?.length - 1))
           this.changePage(this.paginate.active, "decrement")
+
+          setTimeout(() => this.scrolling(this.table?.getBoundingClientRect().right, "right"), 50)
         }
       }
     },
     cellNavigator(existNextPage, rowExistInNextPage, direction) {
       if (direction === "right") {
-        if (this.navigation.column !== (this.fields.length - 1)) this.setNavigation(this.navigation.row, (this.navigation.column + 1))
+        if (this.navigation.column !== (this.fields?.length - 1)) this.setNavigation(this.navigation.row, (this.navigation.column + 1))
 
-        else if (this.navigation.column === (this.fields.length - 1)) {
+        else if (this.navigation.column === (this.fields?.length - 1)) {
           if (existNextPage) {
             if (rowExistInNextPage) {
               this.changePage(this.paginate.active, "increment")
               this.setNavigation(this.navigation.row, 0)
+              this.scrolling(this.table?.scrollLeft, "left")
+
+              setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
             }
 
             else if (!rowExistInNextPage) {
@@ -308,6 +318,8 @@ Vue.component("form-table", {
 
               this.changePage(this.paginate.active, "increment")
               this.setNavigation(lastResgister, 0)
+              
+              setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
             }
           }
         }
@@ -317,8 +329,10 @@ Vue.component("form-table", {
         if (this.navigation.column !== 0) this.setNavigation(this.navigation.row, (this.navigation.column - 1))
 
         else if (this.navigation.column === 0 && existNextPage) {
-          this.changePage(this.paginate.active, "increment")
-          this.setNavigation(this.navigation.row, 0)
+          this.changePage(this.paginate.active, "decrement")
+          this.setNavigation(this.navigation.row, (this.fields?.length - 1))
+
+          setTimeout(() => this.scrolling(this.table?.getBoundingClientRect().right, "right"), 50)
         }
       }
     },
@@ -332,9 +346,11 @@ Vue.component("form-table", {
     disableScroll() {
 
     },
-    /* scrolling(to) {
-      this.table?.scrollLeft += to;
-    }, */
+    scrolling(to, direction) {
+      if (direction == "right") this.table.scrollLeft += to;
+
+      if (direction == "left") this.table.scrollLeft -= to;
+    },
 
     // to drag columns
     handleStartDraggable() {
@@ -415,14 +431,14 @@ Vue.component("form-table", {
           newIndex++;
         }
 
-        const columnsSelected = this.colunas.filter(
+        const columnsSelected = this.colunas?.filter(
           (column) => column.selected
         );
 
         let columns = [];
         let setted = false;
 
-        this.colunas.forEach((column, key) => {
+        this.colunas?.forEach((column, key) => {
           if (key === newIndex) {
             setted = true;
             columns = columns.concat(columnsSelected);
@@ -572,7 +588,7 @@ Vue.component("form-table", {
     orderBy(order, column) {
       this.ordering = {order, column};
 
-      this.colunas = this.colunas.map((header) => {
+      this.colunas = this.colunas?.map((header) => {
         header.asc = header.key === column && order === "asc";
         header.desc = header.key === column && order === "desc";
         return header;
@@ -580,7 +596,7 @@ Vue.component("form-table", {
       this.menuShowIndex = null;
     },
     removeOrderBy() {
-      this.colunas = this.colunas.map((header) => {
+      this.colunas = this.colunas?.map((header) => {
         header.asc = false;
         header.desc = false;
         return header;
@@ -604,9 +620,9 @@ Vue.component("form-table", {
           .reverse()
           .find((c, i) => i < key && !c.hide && c.hideRight);
         if (otherEl)
-          otherIndex = this.colunas.findIndex((c) => c.key === otherEl.key);
+          otherIndex = this.colunas?.findIndex((c) => c.key === otherEl.key);
       } else if (this.colunas[key].hideRight) {
-        otherIndex = this.colunas.findIndex(
+        otherIndex = this.colunas?.findIndex(
           (c, i) => i > key && !c.hide && c.hideLeft
         );
       }
@@ -623,10 +639,10 @@ Vue.component("form-table", {
         .findIndex((column) => !column.hide);
       if (keyRight === 0) keyRight = 1;
 
-      let keyLeft = this.colunas.slice(key).findIndex((column) => !column.hide);
+      let keyLeft = this.colunas?.slice(key).findIndex((column) => !column.hide);
       if (keyLeft === 0) keyLeft = 1;
 
-      this.colunas = this.colunas.map((column, idx) => {
+      this.colunas = this.colunas?.map((column, idx) => {
         if (key === idx) {
           column.hide = true;
           column.hideLeft = false;
@@ -643,7 +659,7 @@ Vue.component("form-table", {
     handleShowColumn(key, toLeft) {
       let keyHidden = -1;
       if (toLeft) {
-        keyHidden = this.colunas.slice(key).findIndex((column) => column.hide);
+        keyHidden = this.colunas?.slice(key).findIndex((column) => column.hide);
       } else {
         keyHidden = this.colunas
           .slice(0, key)
@@ -663,7 +679,7 @@ Vue.component("form-table", {
         while (
           extremity < 0 &&
           keyHidden > 0 &&
-          this.colunas.length > keyHidden + 1
+          this.colunas?.length > keyHidden + 1
           ) {
           keyHidden = toLeft ? keyHidden + 1 : keyHidden - 1;
           if (this.colunas[keyHidden][extremityStr]) extremity = keyHidden;
@@ -671,7 +687,7 @@ Vue.component("form-table", {
         }
 
         const keyStr = toLeft ? "hideRight" : "hideLeft";
-        this.colunas = this.colunas.map((column, idx) => {
+        this.colunas = this.colunas?.map((column, idx) => {
           if (keysHidden.includes(idx)) column.hide = false;
           if (extremity === idx) column[extremityStr] = false;
           if (key === idx) column[keyStr] = false;
@@ -682,7 +698,7 @@ Vue.component("form-table", {
       }
     },
     handleColumnsHiddenAfterDrag() {
-      this.colunas = this.colunas.map((column, key) => {
+      this.colunas = this.colunas?.map((column, key) => {
         column.hideLeft =
           !column.hide && this.colunas[key - 1] && this.colunas[key - 1].hide;
         column.hideRight =
@@ -708,7 +724,7 @@ Vue.component("form-table", {
     selectColumn(index, reset) {
       const indexes = reset ? index : [...new Set([...this.indexes, index])];
 
-      this.colunas = this.colunas.map((column, key) => {
+      this.colunas = this.colunas?.map((column, key) => {
         column.selected = indexes.includes(key) || (key > Math.min(...indexes) && key < Math.max(...indexes));
         
 
@@ -722,7 +738,7 @@ Vue.component("form-table", {
     handleUnselectColumn(e) {
       if (this.columnsSelected.indexes.length) {
         if (!e.target.closest("div.form-table-div-header")) {
-          this.colunas = this.colunas.map((column) => {
+          this.colunas = this.colunas?.map((column) => {
             column.selected = false;
 
             return column;
@@ -862,13 +878,12 @@ Vue.component("form-table", {
         const rows = Array.from(this.table?.querySelectorAll(".form-table-div-row-body, .form-table-div-row-header"));
 
         rows.forEach( k => {
-          k.style.marginBottom = `${-(k.offsetHeight - k.children[0].offsetHeight)}px`
+          k.style.marginBottom = `${-(k.offsetHeight - k.children[0]?.offsetHeight)}px`
         })
       }
     },
-
     emitCurrentRegister(value) {
-      this.$emit("input", value)
+      value && this.$emit("input", value)
     },
 
     // Table start
@@ -1273,8 +1288,6 @@ const vm = new Vue({
             procedimento: "Parcial",
             conclusao: "Todos os procedimentos concluídos",
           },
-  
-  
         ],
       },
       atalhos: [{key: 16 }, {key: 17}], //passar 16 shift ou 17 ctrl ou []
