@@ -153,7 +153,7 @@ Vue.component("form-table", {
 
       currentFields?.forEach((i, index) => {
         i.style = i.style || {}
-          
+
         let k = currentFields.find((j) => j.key === i.key);
 
         if (k) {
@@ -239,7 +239,7 @@ Vue.component("form-table", {
           const to = (this.table?.querySelector(".selected-cell").nextElementSibling?.getBoundingClientRect().right - this.table?.getBoundingClientRect().right)
 
           if (cellOutOfVision) this.scrolling(to, "right")
-          
+
           this.cellNavigator(existNextPage, rowExistInNextPage, "right")
 
           event.preventDefault()
@@ -273,7 +273,7 @@ Vue.component("form-table", {
           const to = (this.table?.offsetLeft - this.table?.querySelector(".selected-cell").previousElementSibling?.getBoundingClientRect().left)
 
           if (cellOutOfVision) this.scrolling(to, "left")
-          
+
           this.cellNavigator(existNextPage, true, "left")
 
           event.preventDefault()
@@ -293,7 +293,7 @@ Vue.component("form-table", {
 
             setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
           }
-  
+
           else if (!rowExistInNextPage) {
             let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
     
@@ -333,7 +333,7 @@ Vue.component("form-table", {
 
               this.changePage(this.paginate.active, "increment")
               this.setNavigation(lastResgister, 0)
-              
+
               setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
             }
           }
@@ -568,16 +568,16 @@ Vue.component("form-table", {
       const result = e.clientX - oldOffset;
       const newSize = parseFloat((result > 0 ? oldWidth + result : oldWidth - result * -1).toFixed(3));
       const newLeft = result > 0 ? oldOffset + result : oldOffset - result * -1;
-      
+
       if (50 < newSize) {
         element.style.left = `${newLeft}px`;
         element.style.top = `${element.offsetTop}px`;
-        
+
         this.$set(this.colunas[this.resize.colIndex].style, "width", `${newSize}px`);
-        
+
         const columns = Array.from(this.table?.querySelectorAll(".form-table-div-header"));
         let sizes = {};
-          
+
         columns.map((el, index) => sizes[this.fields[index].key] = String(el.offsetWidth + "px"))
 
         localStorage.setItem(`form-table-${this.nome}`, JSON.stringify(sizes))
@@ -891,7 +891,7 @@ Vue.component("form-table", {
         })
       }
     },
-    
+
 
     primeiro() {
       if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
@@ -899,7 +899,7 @@ Vue.component("form-table", {
         this.changePage(1)
         this.setNavigation(0, this.navigation.column)
         setTimeout(() =>  this.table?.focus(), 50)
-      
+
       } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
         this.selectByMethods = true
         this.setNavigation(0, this.navigation.column)
@@ -918,7 +918,7 @@ Vue.component("form-table", {
         this.changePage(this.paginate.pages)
         this.setNavigation(this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
         setTimeout(() =>  this.table?.focus(), 50)
-      
+
       } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
         this.selectByMethods = true
         this.setNavigation(this.paginate.currentPageContent[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
@@ -977,6 +977,10 @@ Vue.component("form-table", {
       });
     },
 
+    displayRecords(col, item) {
+      return col.formatter ? col.formatter(item[col.key]) : item[col.key]
+    }
+
 
   },
   created() {
@@ -1001,18 +1005,20 @@ const vm = new Vue({
           { key: "descricao",    label: "Descrição"    },
           { key: "nascimento",   label: "Nascimento"   },
           { key: "procedimento", label: "Procedimento" },
-        ],
-        itens: [
-          {
-            id: 1,
-            nome: "l",
-            descricao: "Um simples teste de tamanho",
-            sobrenome: "Sampaio",
-            nascimento: "03/12/2001",
-            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-            data: "07/09",
-            procedimento: "",
-            conclusao: "Todos os procedimentos concluídos",
+        { key: "icone", label: "Icone" },
+      ],
+      itens: [
+        {
+          id: 1,
+          nome: "l",
+          descricao: "Um simples teste de tamanho",
+          sobrenome: "Sampaio",
+          nascimento: "03/12/2001",
+          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+          data: "07/09",
+          procedimento: "",
+          conclusao: "Todos os procedimentos concluídos",
+          icone: "&#128737;",
           },
           {
             id: 2,

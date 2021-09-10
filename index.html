@@ -16,7 +16,7 @@
 
 <body>
 <div id="app">
-    <form-table 
+    <form-table
         @input="console.log($event)"
         :itens="registros.itens"
         :fields="registros.colunas"
@@ -27,70 +27,63 @@
     />
 </div>
 
-<script type="text/x-template" id="form-table-template">
-    <div class="control-content-scroll" tabindex="-1">
-        <div class="table-component">
-            <div class="form-table-div-table" ref="tableComponent" tabindex="0" @keydown="keypress" @keyup="keypress" @keypress="keypress" @focus="focus" @blur="blur">
-                <transition name="fade">
-                    <div :class="['draggable-indicator', {hide: !draggable.showIndicator}]"></div>
-                </transition>
-
-                <div class="form-table-div-row-header">
-                    <div class="form-table-div-header" v-for="(coluna, key) in colunas" :key="coluna.key" v-show="!coluna.hide" :key="coluna.key" :data-index="key" :data-name="coluna.key" @mousedown="handleSelectColumnStarted($event, key)" :class="[{'column-selected': coluna.selected && columnsSelected.hasSelection}, {'column-cuted': coluna.selected && draggable.started}, {left: coluna.selected && draggable.started && key === Math.min(...columnsSelected.indexes)}, {right: coluna.selected && draggable.started && key === Math.max(...columnsSelected.indexes)}, coluna.class]" :style="coluna.style">
-                        <span>{{ coluna.label }}</span>
-                        <span :class="['handler-menu open-menu', {right: coluna.hideRight}]" @click="handleShowMenu($event, key)"><i></i></span>
-                        <span :class="[hoverActive(`${key}-left`), 'handler-menu show-column', {left: coluna.hideLeft}]" @mouseover="hover(key, 'left')" @mouseout="hoverEl = null" @click="handleShowColumn(key)" v-if="coluna.hideLeft"><i></i></span>
-                        <span :class="[hoverActive(`${key}-right`), 'handler-menu show-column', {right: coluna.hideRight}]" @mouseover="hover(key, 'right')" @mouseout="hoverEl = null" @click="handleShowColumn(key, true)" v-if="coluna.hideRight"><i></i></span>
-                        <span class="resize-column" :ref="`resize-${key}`" @mousedown="handleDownChangeSize($event, coluna, key)" v-if="paginate.currentPageContent?.length >= 1"></span>
-
-                        <transition name="fade">
-                            <ul class="dropdown-filter-menu" ref="menu" @mouseleave="menuShowIndex = null" v-show="menuShowIndex === key">
-                                <li><span @click="orderBy('asc', coluna.key)">Ordernar A-Z</span></li>
-                                <li><span @click="orderBy('desc', coluna.key)">Ordenar Z-A</span></li>
-                                <li><span @click="removeOrderBy()" v-if="coluna.asc || coluna.desc">Remover ordenamento</span></li>
-                                <li><span @click="handleHideColumn(key, coluna.key)">Ocultar coluna</span></li>
-                                <li><span @click="filterColumn(coluna)">Filtrar</span></li>
-                            </ul>
-                        </transition>
+    <script type="text/x-template" id="form-table-template">
+        <div class="control-content-scroll" tabindex="-1">
+            <div class="table-component">
+                <div class="form-table-div-table" ref="tableComponent" tabindex="0" @keydown="keypress" @keyup="keypress" @keypress="keypress" @focus="focus" @blur="blur">
+                    <transition name="fade">
+                        <div :class="['draggable-indicator', {hide: !draggable.showIndicator}]"></div>
+                    </transition>
+    
+                    <div class="form-table-div-row-header">
+                        <div class="form-table-div-header" v-for="(coluna, key) in colunas" :key="coluna.key" v-show="!coluna.hide" :key="coluna.key" :data-index="key" :data-name="coluna.key" @mousedown="handleSelectColumnStarted($event, key)" :class="[{'column-selected': coluna.selected && columnsSelected.hasSelection}, {'column-cuted': coluna.selected && draggable.started}, {left: coluna.selected && draggable.started && key === Math.min(...columnsSelected.indexes)}, {right: coluna.selected && draggable.started && key === Math.max(...columnsSelected.indexes)}, coluna.class]" :style="coluna.style">
+                            <span>{{ coluna.label }}</span>
+                            <span :class="['handler-menu open-menu', {right: coluna.hideRight}]" @click="handleShowMenu($event, key)"><i></i></span>
+                            <span :class="[hoverActive(`${key}-left`), 'handler-menu show-column', {left: coluna.hideLeft}]" @mouseover="hover(key, 'left')" @mouseout="hoverEl = null" @click="handleShowColumn(key)" v-if="coluna.hideLeft"><i></i></span>
+                            <span :class="[hoverActive(`${key}-right`), 'handler-menu show-column', {right: coluna.hideRight}]" @mouseover="hover(key, 'right')" @mouseout="hoverEl = null" @click="handleShowColumn(key, true)" v-if="coluna.hideRight"><i></i></span>
+                            <span class="resize-column" :ref="`resize-${key}`" @mousedown="handleDownChangeSize($event, coluna, key)" v-if="paginate.currentPageContent?.length >= 1"></span>
+    
+                            <transition name="fade">
+                                <ul class="dropdown-filter-menu" ref="menu" @mouseleave="menuShowIndex = null" v-show="menuShowIndex === key">
+                                    <li><span @click="orderBy('asc', coluna.key)">Ordernar A-Z</span></li>
+                                    <li><span @click="orderBy('desc', coluna.key)">Ordenar Z-A</span></li>
+                                    <li><span @click="removeOrderBy()" v-if="coluna.asc || coluna.desc">Remover ordenamento</span></li>
+                                    <li><span @click="handleHideColumn(key, coluna.key)">Ocultar coluna</span></li>
+                                    <li><span @click="filterColumn(coluna)">Filtrar</span></li>
+                                </ul>
+                            </transition>
+                        </div>
                     </div>
-                </div>
+    
+                    <div class="form-table-div-body">
+                        <div v-for="(item, indiceLinha) in customItems"
 
-                <div class="form-table-div-body">
-                    <div v-for="(item, indiceLinha) in customItems" 
-                         :data-index='indiceLinha'  
-                         is="transition-group" 
-                         name="fade" 
-                         :key="item" 
-                         :class="[
-                            'form-table-div-row-body', 
-                            { 
-                                selected: navigation.row === indiceLinha && navigation.navigationOn, 
-                                'customized-line-rendered': indiceLinha % 2 === 0 
+                             :data-index='indiceLinha'
+                              is="transition-group"
+                            name="fade"
+                         :key="item" :class="['form-table-div-row-body',
+                             {selected: navigation.row === indiceLinha && navigation.navigationOn,
+                             'customized-line-rendered': indiceLinha % 2 === 0
                             }
                          ]"
-                    >
-                        
-                        
-                        <div v-for="(coluna, indiceColuna) in colunas"  
-                             :key="coluna.key" 
-                             :data-index="indiceColuna" 
-                             @mousedown="setNavigation(indiceLinha, indiceColuna)" 
-                             v-show="!coluna.hide" 
-                             :style="coluna.style" 
-                             :class="[
-                                coluna.class,
-                                'form-table-div-content',  
-                                { 
-                                    'customized-line-rendered': indiceLinha % 2 == 0, 
-                                    'column-cuted': coluna.selected && draggable.started,
+                    ><div v-for="(coluna, indiceColuna) in colunas"
+                                 :key="coluna.key"
+                                 :data-index="indiceColuna"
+                                 @mousedown="setNavigation(indiceLinha, indiceColuna)"
+                                 v-show="!coluna.hide"
+                                 :style="coluna.style"
+                                 :class="[coluna.class,'form-table-div-content',
+                                 {
+                                    'customized-line-rendered': indiceLinha % 2 == 0,
+                                 'column-cuted': coluna.selected && draggable.started,
                                     'column-selected': coluna.selected && columnsSelected.hasSelection,
                                     left: coluna.selected && draggable.started && indiceColuna === Math.min(...columnsSelected.indexes),
-                                    right: coluna.selected && draggable.started && indiceColuna === Math.max(...columnsSelected.indexes),
+                                 right: coluna.selected && draggable.started && indiceColuna === Math.max(...columnsSelected.indexes),
                                     'selected-cell': indiceLinha == navigation.row && indiceColuna == navigation.column && navigation.navigationOn && !onlyRow,
-                                }, 
+                                },
                              ]"
                         >
-                             {{ coluna.formatter ? coluna.formatter(item[coluna.key]) : item[coluna.key] }}
+                             <span v-html="displayRecords(coluna, item)"></span>
                         </div>
                     </div>
                 </div>
