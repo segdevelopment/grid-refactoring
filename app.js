@@ -67,11 +67,11 @@ Vue.component("form-table", {
       }
     },
     "navigation.row": function (newValue) {
-     if (this.tableFocused) {
-      let currentRegister = (this.paginate.currentPageContent[newValue]);
+      if (this.tableFocused) {
+        let currentRegister = (this.paginate.currentPageContent[newValue]);
 
-      this.emitCurrentRegister(currentRegister)
-     }
+        this.emitCurrentRegister(currentRegister)
+      }
     },
     "paginate.currentPageContent": function (newValue) {
       this.defineResizePosition();
@@ -177,13 +177,13 @@ Vue.component("form-table", {
       this.$set(this.navigation, "navigationOn", false)
       document.querySelector("body").classList.remove("noScroll")
     },
-    
 
     keypress(event) {
-      let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altkey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (event.type === (i.type || "keyup")) && (i.key === event.key))
-      
+      let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altkey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (event.type === (i.type || 'keydown')) && (i.key === event.key))
       if (atalho && atalho.funcao) {
-        atalho.funcao(this.paginate.currentPageContent[this.navigation.row], event)
+        atalho.funcao(event)
+        event.preventDefault()
+        event.stopPropagation()
 
       } else if (!event.altKey && !event.ctrlKey && !event.shiftKey && event.type === "keydown" && (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === " ")) {
 
@@ -296,7 +296,7 @@ Vue.component("form-table", {
 
           else if (!rowExistInNextPage) {
             let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
-    
+
             this.setNavigation(lastResgister, 0)
             this.changePage(this.paginate.active, "increment")
 
@@ -735,7 +735,7 @@ Vue.component("form-table", {
 
       this.colunas = this.colunas?.map((column, key) => {
         column.selected = indexes.includes(key) || (key > Math.min(...indexes) && key < Math.max(...indexes));
-        
+
 
         return column;
       });
@@ -894,45 +894,41 @@ Vue.component("form-table", {
 
 
     primeiro() {
+      this.$set(this.navigation, "navigationOn", true)
       if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
         this.selectByMethods = true
         this.changePage(1)
         this.setNavigation(0, this.navigation.column)
-        setTimeout(() =>  this.table?.focus(), 50)
 
       } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
         this.selectByMethods = true
         this.setNavigation(0, this.navigation.column)
-        setTimeout(() =>  this.table?.focus(), 50)
+
       } else if (this.navigation.row === 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
         this.selectByMethods = true
         this.changePage(1)
-        setTimeout(() =>  this.table?.focus(), 50)
-      } else {
-        this.table?.focus()
+
       }
     },
     ultimo() {
+      this.$set(this.navigation, "navigationOn", true)
       if (this.navigation.row !== (this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1) && JSON.stringify(this.paginate.allPages[(this.paginate.allPages.length - 1)]) !== JSON.stringify(this.paginate.currentPageContent)) {
         this.selectByMethods = true
         this.changePage(this.paginate.pages)
         this.setNavigation(this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
-        setTimeout(() =>  this.table?.focus(), 50)
 
       } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
         this.selectByMethods = true
         this.setNavigation(this.paginate.currentPageContent[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
-        setTimeout(() =>  this.table?.focus(), 50)
+
       } else if (this.navigation.row === 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
         this.selectByMethods = true
         this.changePage(this.paginate.pages)
-        setTimeout(() =>  this.table?.focus(), 50)
-      } else {
-        this.table?.focus()
+
       }
     },
     anterior() {
-      setTimeout(() => this.table?.focus(), 50)
+      this.$set(this.navigation, "navigationOn", true)
       setTimeout(() => {
         if ((this.navigation.row - 1) >= 0) {
           this.setNavigation((this.navigation.row - 1), this.navigation.column)
@@ -941,7 +937,7 @@ Vue.component("form-table", {
 
     },
     proximo() {
-      setTimeout(() =>  this.table?.focus(), 50)
+      this.$set(this.navigation, "navigationOn", true)
       setTimeout(() => {
         if ((this.navigation.row + 1) <= (this.paginate.currentPageContent.length - 1)) {
           this.setNavigation((this.navigation.row + 1), this.navigation.column)
