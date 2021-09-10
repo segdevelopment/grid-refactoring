@@ -22,7 +22,7 @@ Vue.component("form-table", {
     fnColunaSelecionada: { type: Function, required: false   },
     atalhos:             { type: Array,    required: false, default: () => []   },
     linhas:              { type: Number,   required: false, default: () => 20   },
-    onlyRow:             { type: Boolean,  required: false, default: () => false },
+    onlyRow:             { type: Boolean,  required: false, default: () => true },
   },
   data() {
     return {
@@ -30,6 +30,7 @@ Vue.component("form-table", {
       hoverEl:         null,
       table:           null,
       tableFocused:    false,
+      selectByMethods: false,
       colunas:         this.processar(this.fields),
       ordering:        { order: null,           column: null },
       columnsSelected: { indexes: [],           hasSelection: false },
@@ -43,16 +44,18 @@ Vue.component("form-table", {
   },
   watch: {
     fields() {
-      this.colunas = this.processar(this.fields);
+      this.colunas = this.processar(this.fields)
     },
     itens() {
-      const rows = Array.from(this.table.querySelectorAll(".form-table-div-row-body, .form-table-div-row-header"));
+      this.colunas = this.processar(this.fields)
+    },
+    tableFocused() {
+      if (this.tableFocused && !this.selectByMethods) {
+        let currentRegister = (this.paginate.currentPageContent[this.navigation.row]);
 
-      if (rows) {
-        this.defineRowsMargin()
-        this.colunas = this.processar(this.fields);
+        this.emitCurrentRegister(currentRegister)
       }
-    }, 
+    },
     "paginate.active": function () {
       let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
 
@@ -64,9 +67,11 @@ Vue.component("form-table", {
       }
     },
     "navigation.row": function (newValue) {
+     if (this.tableFocused) {
       let currentRegister = (this.paginate.currentPageContent[newValue]);
 
       this.emitCurrentRegister(currentRegister)
+     }
     },
     "paginate.currentPageContent": function (newValue) {
       this.defineResizePosition();
@@ -110,7 +115,7 @@ Vue.component("form-table", {
     },
     filteredItems() {
       const {hideRows, column} = this.filter;
-      let items = this.itens.slice();
+      let items = this.itens?.slice();
 
       if (hideRows[column.key]?.length) {
         items = items.map((item) => {
@@ -134,30 +139,25 @@ Vue.component("form-table", {
   methods: {
     processar(currentFields) {
       const t = [];
-      const fieldsFromStorage = JSON.parse(localStorage.getItem(`form-table-${this.nome}`));
+      const fieldsStylesFromStorage = JSON.parse(localStorage.getItem(`form-table-${this.nome}`));
 
-      if(fieldsFromStorage) {
-        return fieldsFromStorage;
-      }
-
-      let bodyCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: this.itens.filter((j, k) => k < 10).map(j => j[i.key] || "").map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
-      let headerCellsSize = this.fields.map(i => Object.defineProperty({}, i.key, { value: String(i.key).length}))
-      let fieldsNames = bodyCellsSize.map(a => Object.getOwnPropertyNames(a)[0])
-      let finalsSizes = fieldsNames.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
-      let total = finalsSizes.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
+      let bodyCellsSize = this.fields?.map(i => Object.defineProperty({}, i.key, { value: this.itens?.filter((j, k) => k < 10).map(j => j[i.key] || "").map(j => String(j)).map(j => j.length).reduce((a, j) => a > j ? a : j, 0) }))
+      let headerCellsSize = this.fields?.map(i => Object.defineProperty({}, i.key, { value: String(i.key).length}))
+      let fieldsNames = bodyCellsSize?.map(a => Object.getOwnPropertyNames(a)[0])
+      let finalsSizes = fieldsNames?.map((o, i) => Object.defineProperty({}, o, { value: bodyCellsSize[i][o] > headerCellsSize[i][o] ? bodyCellsSize[i][o] : headerCellsSize[i][o]}))
+      let total = finalsSizes?.map((o, i) => o[fieldsNames[i]]).reduce((a, c) =>  a + c, 0)
       let columnsSize = []
 
 
-      fieldsNames.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i)
+      fieldsNames?.map((o, i) => columnsSize[o] = parseFloat(((((finalsSizes[i][o] + (total / finalsSizes.length)) / (total * 2))) * 100).toFixed(2))).reduce( (a, i) => a + i, 0)
 
-
-      currentFields.forEach((i, index) => {
-        let k = currentFields.find((j) => j.key === i.key);
-
+      currentFields?.forEach((i, index) => {
         i.style = i.style || {}
 
+        let k = currentFields.find((j) => j.key === i.key);
+
         if (k) {
-          i.style.width = `calc(${columnsSize[fieldsNames[index]]}%)`
+          fieldsStylesFromStorage ? i.style.width = fieldsStylesFromStorage[i.key] : i.style.width = `calc(${columnsSize[fieldsNames[index]]}%)`;
           t.push({...k})
         }
       })
@@ -166,12 +166,16 @@ Vue.component("form-table", {
     },
     focus() {
       this.$refs["tableComponent"].focus()
+      this.tableFocused = true
       this.$set(this.navigation, "navigationOn", true)
-      this.emitCurrentRegister(this.paginate.currentPageContent[this.navigation.row])
+      document.querySelector("body").classList.add("noScroll")
     },
     blur() {
       this.$refs["tableComponent"].blur()
+      this.tableFocused = false
+      this.selectByMethods = false
       this.$set(this.navigation, "navigationOn", false)
+      document.querySelector("body").classList.remove("noScroll")
     },
     
 
@@ -184,16 +188,16 @@ Vue.component("form-table", {
       } else if (!event.altKey && !event.ctrlKey && !event.shiftKey && event.type === "keydown" && (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === " ")) {
 
         if (event.key === "ArrowDown")
-          this.moveDown()
+          this.moveDown(event)
 
         else if (event.key === "ArrowUp")
-          this.moveUp()
+          this.moveUp(event)
 
         else if (event.key === "ArrowRight")
-          this.moveRight()
+          this.moveRight(event)
 
         else if (event.key === "ArrowLeft")
-          this.moveLeft()
+          this.moveLeft(event)
 
         event.stopPropagation()
 
@@ -203,150 +207,159 @@ Vue.component("form-table", {
     },
     moveDown() {
       if (this.navigation.navigationOn) {
-        let nextRow = this.table?.querySelector(".selected")?.nextElementSibling
-        let nextRowIndex = nextRow == null ? this.navigation.row : Number(nextRow.dataset.index)
-
-        this.setNavigation(nextRowIndex, this.navigation.column)
+        if (this.navigation.row !== (this.linhas - 1)) this.setNavigation((this.navigation.row + 1), this.navigation.column)
       }
     },
     moveUp() {
       if (this.navigation.navigationOn) {
-        let nextRow = this.table?.querySelector(".selected")?.previousElementSibling
-        let nextRowIndex = nextRow == null ? this.navigation.row : Number(nextRow.dataset.index)
-
-        this.setNavigation(nextRowIndex, this.navigation.column)
+        if (this.navigation.row !== 0) this.setNavigation((this.navigation.row - 1), this.navigation.column)
       }
     },
-    moveRight() {
-      if (this.navigation.navigationOn && this.onlyRow) {
-        // this.enableScroll()
+    moveRight(event) {
+      const onlyRowNavigation = this.navigation.navigationOn && this.onlyRow;
+      const cellAndRowNavigation = this.navigation.navigationOn && !this.onlyRow;
+      const existNextPage = (!!this.paginate.allPages[this.paginate.active])
+      const rowExistInNextPage = (this.paginate.allPages[this.paginate.active]?.length > this.navigation.row)
+      const hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
 
-        let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
-
+      if (onlyRowNavigation) {
         if (hasScroll) {
-          this.enableScroll();
+          this.scrolling(250, "right")
+          event.preventDefault()
+        }
 
-        } else {
-          let rowExistInNextPage = (this.paginate.allPages[this.paginate.active]?.length > this.navigation.row)
-          let existNextPage = (!!this.paginate.allPages[this.paginate.active])
+        else if (!hasScroll) {
+          this.rowNavigator(existNextPage, rowExistInNextPage, "right")
+        }
+      }
 
+      else if (cellAndRowNavigation) {
+        if (hasScroll) {
+          const cellOutOfVision = (this.table?.querySelector(".selected-cell").nextElementSibling?.getBoundingClientRect().right > this.table?.getBoundingClientRect().right)
+          const to = (this.table?.querySelector(".selected-cell").nextElementSibling?.getBoundingClientRect().right - this.table?.getBoundingClientRect().right)
+
+          if (cellOutOfVision) this.scrolling(to, "right")
+
+          this.cellNavigator(existNextPage, rowExistInNextPage, "right")
+
+          event.preventDefault()
+        }
+
+        else if (!hasScroll) {
+          this.cellNavigator(existNextPage, rowExistInNextPage, "right")
+        }
+      }
+    },
+    moveLeft(event) {
+      const onlyRowNavigation = this.navigation.navigationOn && this.onlyRow;
+      const cellAndRowNavigation = this.navigation.navigationOn && !this.onlyRow;
+      const existNextPage = (!!this.paginate.allPages[this.paginate.active - 2])
+      const hasScroll = this.table?.querySelector(".form-table-div-header:first-of-type").getBoundingClientRect().left < this.table.getBoundingClientRect().left;
+
+      if (onlyRowNavigation) {
+        if (hasScroll) {
+          this.scrolling(250, "left")
+          event.preventDefault()
+        }
+
+        else if (!hasScroll) {
+          this.rowNavigator(existNextPage, true, "left")
+        }
+      }
+
+      else if (cellAndRowNavigation) {
+        if (hasScroll) {
+          const cellOutOfVision = (this.table?.querySelector(".selected-cell").previousElementSibling?.getBoundingClientRect().left < this.table?.getBoundingClientRect().left)
+          const to = (this.table?.offsetLeft - this.table?.querySelector(".selected-cell").previousElementSibling?.getBoundingClientRect().left)
+
+          if (cellOutOfVision) this.scrolling(to, "left")
+
+          this.cellNavigator(existNextPage, true, "left")
+
+          event.preventDefault()
+        }
+
+        else if (!hasScroll) {
+          this.cellNavigator(existNextPage, true, "left")
+        }
+      }
+    },
+    rowNavigator(existNextPage, rowExistInNextPage, direction) {
+      if (direction === "right") {
+        if (existNextPage) {
+          if (rowExistInNextPage) {
+            this.setNavigation(this.navigation.row, 0)
+            this.changePage(this.paginate.active, "increment")
+
+            setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
+          }
+
+          else if (!rowExistInNextPage) {
+            let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
+    
+            this.setNavigation(lastResgister, 0)
+            this.changePage(this.paginate.active, "increment")
+
+            setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
+          }
+        }
+      }
+      // Parei na navegação
+      else if (direction === "left") {
+        if (existNextPage) {
+          this.setNavigation(this.navigation.row, (this.fields?.length - 1))
+          this.changePage(this.paginate.active, "decrement")
+
+          setTimeout(() => this.scrolling(this.table?.getBoundingClientRect().right, "right"), 50)
+        }
+      }
+    },
+    cellNavigator(existNextPage, rowExistInNextPage, direction) {
+      if (direction === "right") {
+        if (this.navigation.column !== (this.fields?.length - 1)) this.setNavigation(this.navigation.row, (this.navigation.column + 1))
+
+        else if (this.navigation.column === (this.fields?.length - 1)) {
           if (existNextPage) {
             if (rowExistInNextPage) {
+              this.changePage(this.paginate.active, "increment")
               this.setNavigation(this.navigation.row, 0)
-              this.changePage(this.paginate.active, "increment")
-  
-            } else {
+              this.scrolling(this.table?.scrollLeft, "left")
+
+              setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
+            }
+
+            else if (!rowExistInNextPage) {
               let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
-  
-              this.setNavigation(lastResgister, 0)
+
               this.changePage(this.paginate.active, "increment")
+              this.setNavigation(lastResgister, 0)
+
+              setTimeout(() => this.scrolling(this.table?.scrollLeft, "left"), 50)
             }
           }
         }
-      } else if (this.navigation.navigationOn && !this.onlyRow) {
-        // this.disableScroll()
-
-        let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
-        let rowExistInNextPage = (this.paginate.allPages[this.paginate.active]?.length > this.navigation.row)
-        let existNextPage = (!!this.paginate.allPages[this.paginate.active])
-
-        if (hasScroll) {
-          this.disableScroll()
-
-          if (this.navigation.column === (this.colunas.length - 1)) {
-            if (existNextPage) {
-              if (rowExistInNextPage) {
-                this.setNavigation(this.navigation.row, 0)
-                this.changePage(this.paginate.active, "increment")
-    
-              } else {
-                let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
-    
-                this.setNavigation(lastResgister, 0)
-                this.changePage(this.paginate.active, "increment")
-              }
-            }
-
-          } else {
-            this.setNavigation(this.navigation.row, (this.navigation.column + 1))
-          }
-        } else {
-          if (this.navigation.column === (this.colunas.length - 1)) {
-            if (existNextPage) {
-              if (rowExistInNextPage) {
-                this.setNavigation(this.navigation.row, 0)
-                this.changePage(this.paginate.active, "increment")
-    
-              } else {
-                let lastResgister = (this.paginate.allPages[this.paginate.active]?.length - 1)
-    
-                this.setNavigation(lastResgister, 0)
-                this.changePage(this.paginate.active, "increment")
-              }
-            }
-
-          } else {
-            this.setNavigation(this.navigation.row, (this.navigation.column + 1))
-          } 
-        }
-
       }
-    },
-    moveLeft() {
-      if (this.navigation.navigationOn && this.onlyRow) {
-        // this.enableScroll()
 
-        let hasScroll = this.table?.querySelector(".form-table-div-header:first-of-type").getBoundingClientRect().left < this.table.getBoundingClientRect().left;
+      else if (direction === "left") {
+        if (this.navigation.column !== 0) this.setNavigation(this.navigation.row, (this.navigation.column - 1))
 
-        if (hasScroll) {
-          this.enableScroll();
-
-        } else {
-          let lastColumnIndex = Array.from(this.table?.querySelectorAll(".form-table-div-header")).length - 1;
-
-          this.setNavigation(this.navigation.row, lastColumnIndex)
+        else if (this.navigation.column === 0 && existNextPage) {
           this.changePage(this.paginate.active, "decrement")
+          this.setNavigation(this.navigation.row, (this.fields?.length - 1))
+
+          setTimeout(() => this.scrolling(this.table?.getBoundingClientRect().right, "right"), 50)
         }
-      } else if (this.navigation.navigationOn && !this.onlyRow) {
-        // this.disableScroll()
-
-        let hasScroll = this.table?.querySelector(".form-table-div-header:last-of-type").getBoundingClientRect().right > this.table.getBoundingClientRect().right;
-        let existPreviousPage = (!!this.paginate.allPages[this.paginate.active - 2])
-
-        if (hasScroll) {
-          if (this.navigation.column === 0 && existPreviousPage) {
-            this.changePage(this.paginate.active, "decrement")
-            this.setNavigation(this.navigation.row, (this.colunas.length - 1))
-
-          } else if (this.navigation.column !== 0) {
-            this.setNavigation(this.navigation.row, (this.navigation.column - 1))
-          }
-
-        } else {
-          if (this.navigation.column === 0 && existPreviousPage) {
-            this.changePage(this.paginate.active, "decrement")
-            this.setNavigation(this.navigation.row, (this.colunas.length - 1))
-
-          } else if (this.navigation.column !== 0) {
-            this.setNavigation(this.navigation.row, (this.navigation.column - 1))
-          }
-        }
-
       }
     },
     setNavigation(row, column) {
       this.$set(this.navigation, "row", row);
       this.$set(this.navigation, "column", column);
     },
-    enableScroll() {
-      console.log("scrolling")
-    },
-    disableScroll() {
+    scrolling(to, direction) {
+      if (direction == "right") this.table.scrollLeft += to;
 
+      if (direction == "left") this.table.scrollLeft -= to;
     },
-    /* scrolling(to) {
-      this.table?.scrollLeft += to;
-    }, */
 
     // to drag columns
     handleStartDraggable() {
@@ -427,14 +440,14 @@ Vue.component("form-table", {
           newIndex++;
         }
 
-        const columnsSelected = this.colunas.filter(
+        const columnsSelected = this.colunas?.filter(
           (column) => column.selected
         );
 
         let columns = [];
         let setted = false;
 
-        this.colunas.forEach((column, key) => {
+        this.colunas?.forEach((column, key) => {
           if (key === newIndex) {
             setted = true;
             columns = columns.concat(columnsSelected);
@@ -447,8 +460,6 @@ Vue.component("form-table", {
         if (!setted) columns = columns.concat(columnsSelected);
 
         this.colunas = columns;
-        localStorage.setItem(`form-table-${this.nome}`, JSON.stringify(this.colunas));
-
 
         const newIndexes = columns.reduce((final, current, index) => {
           if (current.selected) final.push(index);
@@ -562,9 +573,14 @@ Vue.component("form-table", {
         element.style.left = `${newLeft}px`;
         element.style.top = `${element.offsetTop}px`;
 
-        this.$set(this.colunas[this.resize.colIndex].style, "width", `calc(${newSize}px)`);
+        this.$set(this.colunas[this.resize.colIndex].style, "width", `${newSize}px`);
 
-        localStorage.setItem(`form-table-${this.nome}`, JSON.stringify(this.colunas))
+        const columns = Array.from(this.table?.querySelectorAll(".form-table-div-header"));
+        let sizes = {};
+
+        columns.map((el, index) => sizes[this.fields[index].key] = String(el.offsetWidth + "px"))
+
+        localStorage.setItem(`form-table-${this.nome}`, JSON.stringify(sizes))
       }
     },
     defineResizePosition() {
@@ -581,7 +597,7 @@ Vue.component("form-table", {
     orderBy(order, column) {
       this.ordering = {order, column};
 
-      this.colunas = this.colunas.map((header) => {
+      this.colunas = this.colunas?.map((header) => {
         header.asc = header.key === column && order === "asc";
         header.desc = header.key === column && order === "desc";
         return header;
@@ -589,7 +605,7 @@ Vue.component("form-table", {
       this.menuShowIndex = null;
     },
     removeOrderBy() {
-      this.colunas = this.colunas.map((header) => {
+      this.colunas = this.colunas?.map((header) => {
         header.asc = false;
         header.desc = false;
         return header;
@@ -613,9 +629,9 @@ Vue.component("form-table", {
           .reverse()
           .find((c, i) => i < key && !c.hide && c.hideRight);
         if (otherEl)
-          otherIndex = this.colunas.findIndex((c) => c.key === otherEl.key);
+          otherIndex = this.colunas?.findIndex((c) => c.key === otherEl.key);
       } else if (this.colunas[key].hideRight) {
-        otherIndex = this.colunas.findIndex(
+        otherIndex = this.colunas?.findIndex(
           (c, i) => i > key && !c.hide && c.hideLeft
         );
       }
@@ -632,10 +648,10 @@ Vue.component("form-table", {
         .findIndex((column) => !column.hide);
       if (keyRight === 0) keyRight = 1;
 
-      let keyLeft = this.colunas.slice(key).findIndex((column) => !column.hide);
+      let keyLeft = this.colunas?.slice(key).findIndex((column) => !column.hide);
       if (keyLeft === 0) keyLeft = 1;
 
-      this.colunas = this.colunas.map((column, idx) => {
+      this.colunas = this.colunas?.map((column, idx) => {
         if (key === idx) {
           column.hide = true;
           column.hideLeft = false;
@@ -652,7 +668,7 @@ Vue.component("form-table", {
     handleShowColumn(key, toLeft) {
       let keyHidden = -1;
       if (toLeft) {
-        keyHidden = this.colunas.slice(key).findIndex((column) => column.hide);
+        keyHidden = this.colunas?.slice(key).findIndex((column) => column.hide);
       } else {
         keyHidden = this.colunas
           .slice(0, key)
@@ -672,7 +688,7 @@ Vue.component("form-table", {
         while (
           extremity < 0 &&
           keyHidden > 0 &&
-          this.colunas.length > keyHidden + 1
+          this.colunas?.length > keyHidden + 1
           ) {
           keyHidden = toLeft ? keyHidden + 1 : keyHidden - 1;
           if (this.colunas[keyHidden][extremityStr]) extremity = keyHidden;
@@ -680,7 +696,7 @@ Vue.component("form-table", {
         }
 
         const keyStr = toLeft ? "hideRight" : "hideLeft";
-        this.colunas = this.colunas.map((column, idx) => {
+        this.colunas = this.colunas?.map((column, idx) => {
           if (keysHidden.includes(idx)) column.hide = false;
           if (extremity === idx) column[extremityStr] = false;
           if (key === idx) column[keyStr] = false;
@@ -691,7 +707,7 @@ Vue.component("form-table", {
       }
     },
     handleColumnsHiddenAfterDrag() {
-      this.colunas = this.colunas.map((column, key) => {
+      this.colunas = this.colunas?.map((column, key) => {
         column.hideLeft =
           !column.hide && this.colunas[key - 1] && this.colunas[key - 1].hide;
         column.hideRight =
@@ -717,7 +733,7 @@ Vue.component("form-table", {
     selectColumn(index, reset) {
       const indexes = reset ? index : [...new Set([...this.indexes, index])];
 
-      this.colunas = this.colunas.map((column, key) => {
+      this.colunas = this.colunas?.map((column, key) => {
         column.selected = indexes.includes(key) || (key > Math.min(...indexes) && key < Math.max(...indexes));
         
 
@@ -731,7 +747,7 @@ Vue.component("form-table", {
     handleUnselectColumn(e) {
       if (this.columnsSelected.indexes.length) {
         if (!e.target.closest("div.form-table-div-header")) {
-          this.colunas = this.colunas.map((column) => {
+          this.colunas = this.colunas?.map((column) => {
             column.selected = false;
 
             return column;
@@ -871,13 +887,70 @@ Vue.component("form-table", {
         const rows = Array.from(this.table?.querySelectorAll(".form-table-div-row-body, .form-table-div-row-header"));
 
         rows.forEach( k => {
-          k.style.marginBottom = `${-(k.offsetHeight - k.children[0].offsetHeight)}px`
+          k.style.marginBottom = `${-(k.offsetHeight - k.children[0]?.offsetHeight)}px`
         })
       }
     },
 
+
+    primeiro() {
+      if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.changePage(1)
+        this.setNavigation(0, this.navigation.column)
+        setTimeout(() =>  this.table?.focus(), 50)
+
+      } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.setNavigation(0, this.navigation.column)
+        setTimeout(() =>  this.table?.focus(), 50)
+      } else if (this.navigation.row === 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.changePage(1)
+        setTimeout(() =>  this.table?.focus(), 50)
+      } else {
+        this.table?.focus()
+      }
+    },
+    ultimo() {
+      if (this.navigation.row !== (this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1) && JSON.stringify(this.paginate.allPages[(this.paginate.allPages.length - 1)]) !== JSON.stringify(this.paginate.currentPageContent)) {
+        this.selectByMethods = true
+        this.changePage(this.paginate.pages)
+        this.setNavigation(this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
+        setTimeout(() =>  this.table?.focus(), 50)
+
+      } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.setNavigation(this.paginate.currentPageContent[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
+        setTimeout(() =>  this.table?.focus(), 50)
+      } else if (this.navigation.row === 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.changePage(this.paginate.pages)
+        setTimeout(() =>  this.table?.focus(), 50)
+      } else {
+        this.table?.focus()
+      }
+    },
+    anterior() {
+      setTimeout(() => this.table?.focus(), 50)
+      setTimeout(() => {
+        if ((this.navigation.row - 1) >= 0) {
+          this.setNavigation((this.navigation.row - 1), this.navigation.column)
+        }
+      }, 60)
+
+    },
+    proximo() {
+      setTimeout(() =>  this.table?.focus(), 50)
+      setTimeout(() => {
+        if ((this.navigation.row + 1) <= (this.paginate.currentPageContent.length - 1)) {
+          this.setNavigation((this.navigation.row + 1), this.navigation.column)
+        }
+      }, 60)
+    },
+
     emitCurrentRegister(value) {
-      this.$emit("input", value)
+      value && this.$emit("input", value)
     },
 
     // Table start
@@ -919,19 +992,19 @@ Vue.component("form-table", {
 });
 
 const vm = new Vue({
-  el: "#app",
-  data: {
-    registros: {
-      colunas: [
-        { key: "id", label: "Id" },
-        { key: "nome", label: "Nome" },
-        { key: "sobrenome", label: "Sobrenome" },
-        { key: "nascimento", label: "Nascimento" },
-        { key: "texto", label: "Texto" },
-        { key: "data", label: "Data" },
-        { key: "procedimento", label: "Procedimento" },
-        { key: "conclusao", label: "Conlusão" },
-        { key: "descricao", label: "Descrição" },
+    el: "#app",
+    data: {
+      registros: {
+        colunas: [
+          { key: "id",           label: "Id"           },
+          { key: "nome",         label: "Nome"         },
+          { key: "data",         label: "Data"         },
+          { key: "texto",        label: "Texto"        },
+          { key: "conclusao",    label: "Conlusão"     },
+          { key: "sobrenome",    label: "Sobrenome"    },
+          { key: "descricao",    label: "Descrição"    },
+          { key: "nascimento",   label: "Nascimento"   },
+          { key: "procedimento", label: "Procedimento" },
         { key: "icone", label: "Icone" },
       ],
       itens: [
@@ -946,354 +1019,352 @@ const vm = new Vue({
           procedimento: "",
           conclusao: "Todos os procedimentos concluídos",
           icone: "&#128737;",
-        },
-        {
-          id: 2,
-          nome: "i",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Pereira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Todos",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 3,
-          nome: "p",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Vieira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Nenhum",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 4,
-          nome: "7",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Parcial",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 1,
-          nome: "u",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 2,
-          nome: "i",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Pereira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Todos",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 3,
-          nome: ";",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Vieira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Nenhum",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 4,
-          nome: "Marcelo",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Parcial",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 1,
-          nome: "Daniel",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 2,
-          nome: "Lucas",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Pereira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Todos",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 3,
-          nome: "Fernando",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Vieira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Nenhum",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 4,
-          nome: "Marcelo",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Parcial",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 1,
-          nome: "Daniel",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 2,
-          nome: "Lucas",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Pereira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Todos",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 3,
-          nome: "Fernando",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Vieira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Nenhum",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 4,
-          nome: "Marcelo",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Parcial",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 1,
-          nome: "Daniel",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 2,
-          nome: "Lucas",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Pereira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Todos",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 3,
-          nome: "Fernando",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Vieira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Nenhum",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 4,
-          nome: "Marcelo",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Parcial",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 1,
-          nome: "fd",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 2,
-          nome: "er",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Pereira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Todos",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 3,
-          nome: "tr",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Vieira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Nenhum",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 4,
-          nome: "gf",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Parcial",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 1,
-          nome: "h",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 2,
-          nome: "u",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Pereira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Todos",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 3,
-          nome: "Feroinando",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Vieira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Nenhum",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 4,
-          nome: "oi",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Parcial",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 1,
-          nome: "lk",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 2,
-          nome: "mn",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Pereira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Todos",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 3,
-          nome: "q",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Vieira",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Nenhum",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-        {
-          id: 4,
-          nome: "w",
-          descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
-          nascimento: "03/12/2001",
-          texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
-          data: "07/09",
-          procedimento: "Parcial",
-          conclusao: "Todos os procedimentos concluídos",
-        },
-
-
-      ],
+          },
+          {
+            id: 2,
+            nome: "i",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "p",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "7",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "u",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "i",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: ";",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "Daniel",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "Lucas",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "Fernando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "Daniel",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "Lucas",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "Fernando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "Daniel",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "Lucas",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "Fernando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "Marcelo",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "fd",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "er",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "tr",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "gf",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "h",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "u",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "Feroinando",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "oi",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 1,
+            nome: "lk",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Sampaio",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 2,
+            nome: "mn",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Pereira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Todos",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 3,
+            nome: "q",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Vieira",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Nenhum",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+          {
+            id: 4,
+            nome: "w",
+            descricao: "Um simples teste de tamanho",
+            sobrenome: "Kallyo",
+            nascimento: "03/12/2001",
+            texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
+            data: "07/09",
+            procedimento: "Parcial",
+            conclusao: "Todos os procedimentos concluídos",
+          },
+        ],
+      },
+      atalhos: [{key: 16 }, {key: 17}], //passar 16 shift ou 17 ctrl ou []
     },
-    atalhos: [{key: 16 }, {key: 17}], //passar 16 shift ou 17 ctrl ou []
-  },
-  methods: {},
-  mounted() {},
+    methods: {},
+    mounted() {},
 });
