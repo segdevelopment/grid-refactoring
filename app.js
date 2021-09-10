@@ -57,9 +57,11 @@ Vue.component("form-table", {
       }
     },
     "paginate.active": function () {
-      let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
+      if (this.tableFocused) {
+        let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
 
       this.emitCurrentRegister(currentRegister)
+      }
     },
     "filter.opened": function (val) {
       if (!val) {
@@ -895,54 +897,58 @@ Vue.component("form-table", {
 
     primeiro() {
       this.$set(this.navigation, "navigationOn", true)
+      this.selectByMethods = true
+
       if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
-        this.selectByMethods = true
         this.changePage(1)
         this.setNavigation(0, this.navigation.column)
+        this.emitCurrentRegister(this.paginate.allPages[0][0])
 
       } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
-        this.selectByMethods = true
         this.setNavigation(0, this.navigation.column)
+        this.emitCurrentRegister(this.paginate.allPages[0][0])
 
       } else if (this.navigation.row === 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
-        this.selectByMethods = true
         this.changePage(1)
-
+        this.emitCurrentRegister(this.paginate.allPages[0][0])
       }
     },
     ultimo() {
       this.$set(this.navigation, "navigationOn", true)
+      this.selectByMethods = true
+
       if (this.navigation.row !== (this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1) && JSON.stringify(this.paginate.allPages[(this.paginate.allPages.length - 1)]) !== JSON.stringify(this.paginate.currentPageContent)) {
-        this.selectByMethods = true
         this.changePage(this.paginate.pages)
         this.setNavigation(this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
+        this.emitCurrentRegister(this.paginate.allPages[(this.paginate.allPages.length - 1)][this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1])
 
       } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
-        this.selectByMethods = true
         this.setNavigation(this.paginate.currentPageContent[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
+        this.emitCurrentRegister(this.paginate.allPages[(this.paginate.allPages.length - 1)][this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1])
 
       } else if (this.navigation.row === 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
-        this.selectByMethods = true
         this.changePage(this.paginate.pages)
-
+        this.emitCurrentRegister(this.paginate.allPages[(this.paginate.allPages.length - 1)][this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1])
       }
     },
     anterior() {
       this.$set(this.navigation, "navigationOn", true)
-      setTimeout(() => {
-        if ((this.navigation.row - 1) >= 0) {
-          this.setNavigation((this.navigation.row - 1), this.navigation.column)
-        }
-      }, 60)
+      this.selectByMethods = true
+
+      if ((this.navigation.row - 1) >= 0) {
+        this.setNavigation((this.navigation.row - 1), this.navigation.column)
+        this.emitCurrentRegister(this.paginate.currentPageContent[this.navigation.row])
+      }
 
     },
     proximo() {
       this.$set(this.navigation, "navigationOn", true)
-      setTimeout(() => {
-        if ((this.navigation.row + 1) <= (this.paginate.currentPageContent.length - 1)) {
-          this.setNavigation((this.navigation.row + 1), this.navigation.column)
-        }
-      }, 60)
+      this.selectByMethods = true
+      
+      if ((this.navigation.row + 1) <= (this.paginate.currentPageContent.length - 1)) {
+        this.setNavigation((this.navigation.row + 1), this.navigation.column)
+        this.emitCurrentRegister(this.paginate.currentPageContent[this.navigation.row])
+      }
     },
 
     emitCurrentRegister(value) {
@@ -1361,6 +1367,23 @@ const vm = new Vue({
       },
       atalhos: [{key: 16 }, {key: 17}], //passar 16 shift ou 17 ctrl ou []
     },
-    methods: {},
-    mounted() {},
+    methods: {
+      handler(e) {
+        if (e.key == "w") {
+          this.$refs.companies.anterior()
+        }
+        if (e.key == "s") {
+          this.$refs.companies.proximo()
+        }
+        if (e.key == "d") {
+          this.$refs.companies.ultimo()
+        }
+        if (e.key == "a") {
+          this.$refs.companies.primeiro()
+        }
+      }
+    },
+    mounted() {
+      document.addEventListener("keydown", this.handler)
+    },
 });
