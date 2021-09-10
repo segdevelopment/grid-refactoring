@@ -30,6 +30,7 @@ Vue.component("form-table", {
       hoverEl:         null,
       table:           null,
       tableFocused:    false,
+      selectByMethods: false,
       colunas:         this.processar(this.fields),
       ordering:        { order: null,           column: null },
       columnsSelected: { indexes: [],           hasSelection: false },
@@ -48,6 +49,13 @@ Vue.component("form-table", {
     itens() {
       this.colunas = this.processar(this.fields)
     },
+    tableFocused() {
+      if (this.tableFocused && !this.selectByMethods) {
+        let currentRegister = (this.paginate.currentPageContent[this.navigation.row]);
+
+        this.emitCurrentRegister(currentRegister)
+      }
+    },
     "paginate.active": function () {
       let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
 
@@ -59,9 +67,11 @@ Vue.component("form-table", {
       }
     },
     "navigation.row": function (newValue) {
+     if (this.tableFocused) {
       let currentRegister = (this.paginate.currentPageContent[newValue]);
 
       this.emitCurrentRegister(currentRegister)
+     }
     },
     "paginate.currentPageContent": function (newValue) {
       this.defineResizePosition();
@@ -156,12 +166,14 @@ Vue.component("form-table", {
     },
     focus() {
       this.$refs["tableComponent"].focus()
-      this.$set(this.navigation, 'navigationOn', true)
-      this.emitCurrentRegister(this.paginate.currentPageContent[this.navigation.row])
+      this.tableFocused = true
+      this.$set(this.navigation, "navigationOn", true)
       document.querySelector("body").classList.add("noScroll")
     },
     blur() {
       this.$refs["tableComponent"].blur()
+      this.tableFocused = false
+      this.selectByMethods = false
       this.$set(this.navigation, "navigationOn", false)
       document.querySelector("body").classList.remove("noScroll")
     },
@@ -342,12 +354,6 @@ Vue.component("form-table", {
     setNavigation(row, column) {
       this.$set(this.navigation, "row", row);
       this.$set(this.navigation, "column", column);
-    },
-    enableScroll() {
-      console.log("scrolling")
-    },
-    disableScroll() {
-
     },
     scrolling(to, direction) {
       if (direction == "right") this.table.scrollLeft += to;
@@ -888,16 +894,59 @@ Vue.component("form-table", {
     
 
     primeiro() {
-      this.emitCurrentRegister(this.paginate.allPages[0][0])
+      if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.changePage(1)
+        this.setNavigation(0, this.navigation.column)
+        setTimeout(() =>  this.table?.focus(), 50)
+      
+      } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.setNavigation(0, this.navigation.column)
+        setTimeout(() =>  this.table?.focus(), 50)
+      } else if (this.navigation.row === 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.changePage(1)
+        setTimeout(() =>  this.table?.focus(), 50)
+      } else {
+        this.table?.focus()
+      }
     },
     ultimo() {
-      this.emitCurrentRegister(this.paginate.allPages[0][(this.paginate.allPages[0].length - 1)])
+      if (this.navigation.row !== (this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1) && JSON.stringify(this.paginate.allPages[(this.paginate.allPages.length - 1)]) !== JSON.stringify(this.paginate.currentPageContent)) {
+        this.selectByMethods = true
+        this.changePage(this.paginate.pages)
+        this.setNavigation(this.paginate.allPages[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
+        setTimeout(() =>  this.table?.focus(), 50)
+      
+      } else if (this.navigation.row !== 0 && JSON.stringify(this.paginate.currentPageContent) === JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.setNavigation(this.paginate.currentPageContent[(this.paginate.allPages.length - 1)].length - 1, this.navigation.column)
+        setTimeout(() =>  this.table?.focus(), 50)
+      } else if (this.navigation.row === 0 && JSON.stringify(this.paginate.currentPageContent) !== JSON.stringify(this.paginate.allPages[0])) {
+        this.selectByMethods = true
+        this.changePage(this.paginate.pages)
+        setTimeout(() =>  this.table?.focus(), 50)
+      } else {
+        this.table?.focus()
+      }
     },
     anterior() {
-      this.emitCurrentRegister(this.currentPageContent[(this.navigation.row - 1)])
+      setTimeout(() => this.table?.focus(), 50)
+      setTimeout(() => {
+        if ((this.navigation.row - 1) >= 0) {
+          this.setNavigation((this.navigation.row - 1), this.navigation.column)
+        }
+      }, 60)
+
     },
     proximo() {
-      this.emitCurrentRegister(this.currentPageContent[(this.navigation.row + 1)])
+      setTimeout(() =>  this.table?.focus(), 50)
+      setTimeout(() => {
+        if ((this.navigation.row + 1) <= (this.paginate.currentPageContent.length - 1)) {
+          this.setNavigation((this.navigation.row + 1), this.navigation.column)
+        }
+      }, 60)
     },
 
     emitCurrentRegister(value) {
