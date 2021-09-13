@@ -20,6 +20,7 @@
         @input="console.log($event)"
         :itens="registros.itens"
         :fields="registros.colunas"
+        :eventos="eventos"
         :linhas="10"
         nome="companies"
         ref="companies"
@@ -69,12 +70,13 @@
                                     }
                                 ]">
                         <div v-for="(coluna, indiceColuna) in colunas"
-                             :key="coluna.key"
+                             :key="item[key]"
                              :data-index="indiceColuna"
                              @mousedown="setNavigation(indiceLinha, indiceColuna)"
                              v-show="!coluna.hide"
                              :style="coluna.style"
-                             :class="[coluna.class,'form-table-div-content',
+                             :class="[coluna.class,
+                                        'form-table-div-content',
                                             {
                                                 'customized-line-rendered': indiceLinha % 2 == 0,
                                                 'column-cuted': coluna.selected && draggable.started,

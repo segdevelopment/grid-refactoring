@@ -18,9 +18,10 @@ Vue.component("form-table", {
     nome:                { type: String,   required: true    },
     fields:              { type: Array,    required: true    },
     itens:               { type: Array,    required: true    },
+    key:                 { type: String,   required: false   },
     fnSelecionado:       { type: Function, required: false   },
     fnColunaSelecionada: { type: Function, required: false   },
-    atalhos:             { type: Array,    required: false, default: () => []   },
+    eventos:             { type: Array,    required: false, default: () => []   },
     linhas:              { type: Number,   required: false, default: () => 20   },
     onlyRow:             { type: Boolean,  required: false, default: () => true },
   },
@@ -34,12 +35,12 @@ Vue.component("form-table", {
       colunas:         this.processar(this.fields),
       ordering:        { order: null,           column: null },
       columnsSelected: { indexes: [],           hasSelection: false },
-      navigation:      { navigationOn: false,   row: 0,          column: 0 },
+      navigation:      { navigationOn: false,   row: 0,          column: 0,       key: null },
       selecao:         { ativo: false,          item: null,      linha: 0,        coluna: 0 },
       resize:          { started: false,        colIndex: null,  offset: null,    width: null },
       filter:          { hideRows: {},          column: {},      opened: false,   allChecked: null },
       paginate:        { pages: 4,              active: 1,       allPages: null,  rightShow: false,   currentPageContent: null },
-      draggable:       { showIndicator: false,  started: false,  observer: null,  newIndex: null,     running: null,  indicatorIndex: null, firstClientX: null },
+      draggable:       { showIndicator: false,  started: false,  observer: null,  newIndex: null,     running: null,  indicatorIndex: null, firstClientX: null }
     }
   },
   watch: {
@@ -79,6 +80,7 @@ Vue.component("form-table", {
       this.emitCurrentRegister(newValue[this.navigation.row]);
       this.defineResizePosition();
       this.defineRowsMargin();
+
     },
   },
   computed: {
@@ -181,11 +183,30 @@ Vue.component("form-table", {
       document.querySelector("body").classList.remove("noScroll")
     },
 
-    keypress(event) {
-     let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altKey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (event.type === (i.type || 'keydown')) && (i.key === event.key))
+    clickEvent(event, row, column) {
+      if (!this.tableFocused) {
+        this.setNavigation(row, column)
 
-     if (atalho && atalho.funcao) {
-        atalho.funcao(this.paginate.currentPageContent[this.navigation.row], event)
+      } else if (this.tableFocused) {
+        if (row === this.navigation.row) {
+          let evento = this.eventos.find(i => (i.type === event.type) && (i.button === event.which))
+
+          if (evento && evento.funcao) {
+            evento.funcao(this.paginate.currentPageContent[this.navigation.row], event)
+
+            event.preventDefault()
+            event.stopPropagation()
+          }
+        } else {
+          this.setNavigation(row, column)
+        }
+      }
+    },
+    keypress(event) {
+      let evento = this.eventos.find(i => ((!i.alt) === (!event.altKey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (i.type === event.type) && (i.key === event.key))
+
+      if (evento && evento.funcao) {
+        evento.funcao(this.paginate.currentPageContent[this.navigation.row], event)
         event.preventDefault()
         event.stopPropagation()
 
@@ -212,6 +233,7 @@ Vue.component("form-table", {
     moveDown() {
       if (this.navigation.navigationOn) {
         if (this.navigation.row !== (this.paginate.currentPageContent.length - 1)) this.setNavigation((this.navigation.row + 1), this.navigation.column)
+
       }
     },
     moveUp() {
@@ -356,8 +378,9 @@ Vue.component("form-table", {
       }
     },
     setNavigation(row, column) {
-      this.$set(this.navigation, "row", row);
+      this.$set(this.navigation, "row",    row);
       this.$set(this.navigation, "column", column);
+      this.$set(this.navigation, "key",    this.paginate.currentPageContent[row])
     },
     scrolling(to, direction) {
       if (direction == "right") this.table.scrollLeft += to;
@@ -992,6 +1015,7 @@ Vue.component("form-table", {
   },
   mounted() {
     this.afterTableMounted();
+    console.log(this.key)
   }
 });
 
@@ -1367,23 +1391,12 @@ const vm = new Vue({
           },
         ],
       },
-      atalhos: [{key: 16 }, {key: 17}], //passar 16 shift ou 17 ctrl ou []
+      eventos: [
+        { type: "keydown",   key:    "Enter", funcao: (i, e) => console.log(e.type) },
+        { type: "mousedown", button: 1,       funcao: (i, e) => console.log(e.type) }
+      ],
     },
     methods: {
-      handler(e) {
-        if (e.key == "w") {
-          this.$refs.companies.anterior()
-        }
-        if (e.key == "s") {
-          this.$refs.companies.proximo()
-        }
-        if (e.key == "d") {
-          this.$refs.companies.ultimo()
-        }
-        if (e.key == "a") {
-          this.$refs.companies.primeiro()
-        }
-      }
     },
     mounted() {
       document.addEventListener("keydown", this.handler)
