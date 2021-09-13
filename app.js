@@ -60,7 +60,7 @@ Vue.component("form-table", {
       if (this.tableFocused) {
         let currentRegister = (this.paginate.allPages[this.paginate.active - 1][this.navigation.row]);
 
-      this.emitCurrentRegister(currentRegister)
+        this.emitCurrentRegister(currentRegister)
       }
     },
     "filter.opened": function (val) {
@@ -76,6 +76,7 @@ Vue.component("form-table", {
       }
     },
     "paginate.currentPageContent": function (newValue) {
+      this.emitCurrentRegister(newValue[this.navigation.row]);
       this.defineResizePosition();
       this.defineRowsMargin();
     },
@@ -181,9 +182,10 @@ Vue.component("form-table", {
     },
 
     keypress(event) {
-      let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altkey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (event.type === (i.type || 'keydown')) && (i.key === event.key))
-      if (atalho && atalho.funcao) {
-        atalho.funcao(event)
+     let atalho = this.atalhos.find(i => ((!i.alt) === (!event.altKey)) && ((!i.control) === (!event.ctrlKey)) && ((!i.shift) === (!event.shiftKey)) && (event.type === (i.type || 'keydown')) && (i.key === event.key))
+
+     if (atalho && atalho.funcao) {
+        atalho.funcao(this.paginate.currentPageContent[this.navigation.row], event)
         event.preventDefault()
         event.stopPropagation()
 
@@ -209,7 +211,7 @@ Vue.component("form-table", {
     },
     moveDown() {
       if (this.navigation.navigationOn) {
-        if (this.navigation.row !== (this.linhas - 1)) this.setNavigation((this.navigation.row + 1), this.navigation.column)
+        if (this.navigation.row !== (this.paginate.currentPageContent.length - 1)) this.setNavigation((this.navigation.row + 1), this.navigation.column)
       }
     },
     moveUp() {
@@ -944,7 +946,7 @@ Vue.component("form-table", {
     proximo() {
       this.$set(this.navigation, "navigationOn", true)
       this.selectByMethods = true
-      
+
       if ((this.navigation.row + 1) <= (this.paginate.currentPageContent.length - 1)) {
         this.setNavigation((this.navigation.row + 1), this.navigation.column)
         this.emitCurrentRegister(this.paginate.currentPageContent[this.navigation.row])

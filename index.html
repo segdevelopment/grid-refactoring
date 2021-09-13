@@ -62,12 +62,12 @@
                          name="fade"
                          :key="item"
                          :class="[
-                                'form-table-div-row-body',
-                                {
-                                    selected: navigation.row === indiceLinha && navigation.navigationOn,
-                                    'customized-line-rendered': indiceLinha % 2 === 0
-                                }
-                             ]">
+                                    'form-table-div-row-body',
+                                    {
+                                        selected: navigation.row === indiceLinha && navigation.navigationOn,
+                                        'customized-line-rendered': indiceLinha % 2 === 0
+                                    }
+                                ]">
                         <div v-for="(coluna, indiceColuna) in colunas"
                              :key="coluna.key"
                              :data-index="indiceColuna"
