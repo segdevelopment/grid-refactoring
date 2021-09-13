@@ -17,11 +17,12 @@
 <body>
 <div id="app">
     <form-table
-        @input="console.log($event)"
+        @input="console.log('input event:', $event)"
         :itens="registros.itens"
         :fields="registros.colunas"
         :eventos="eventos"
         :linhas="10"
+        :nome-coluna="nomeColuna"
         nome="companies"
         ref="companies"
         tabindex="-1"
@@ -55,7 +56,6 @@
                         </transition>
                     </div>
                 </div>
-
                 <div class="form-table-div-body">
                     <div v-for="(item, indiceLinha) in customItems"
                          :data-index='indiceLinha'
@@ -65,12 +65,12 @@
                          :class="[
                                     'form-table-div-row-body',
                                     {
-                                        selected: navigation.row === indiceLinha && navigation.navigationOn,
+                                        selected: (navigation.row === indiceLinha && navigation.navigationOn && !navigation.extraIdentificador) || (navigation.extraIdentificador === item.id) || (navigation.extraIdentificador === `${item.id}-FIRST`),
                                         'customized-line-rendered': indiceLinha % 2 === 0
                                     }
                                 ]">
                         <div v-for="(coluna, indiceColuna) in colunas"
-                             :key="item[key]"
+                             :key="indiceColuna"
                              :data-index="indiceColuna"
                              @mousedown="setNavigation(indiceLinha, indiceColuna)"
                              v-show="!coluna.hide"
