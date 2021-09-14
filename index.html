@@ -73,7 +73,7 @@
                         <div v-for="(coluna, indiceColuna) in colunas"
                              :key="indiceColuna"
                              :data-index="indiceColuna"
-                             @mousedown="setNavigation(indiceLinha, indiceColuna)"
+                             @mousedown="clickEvent($event, indiceLinha, indiceColuna)"
                              v-show="!coluna.hide"
                              :style="coluna.style"
                              :class="[coluna.class,
