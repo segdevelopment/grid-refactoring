@@ -1000,12 +1000,15 @@ Vue.component("form-table", {
       //colocado como selecionado
       if (finded){
         console.log("finded: ", finded)
-       return this.navigation.extraIdentificador = finded.id
+        console.log("uppercase", (finded[this.identificador]).toString().toUpperCase())
+       return this.navigation.extraIdentificador = (finded[this.identificador]).toString().toUpperCase()
       }
 
       //se não vamos emit o primeiro registro
       console.log("emitando primeiro registro", this.itens[0])
-      this.navigation.extraIdentificador = `${this.itens[0].id}-FIRST`
+      console.log("upper case", (`${this.itens[0][this.identificador]}-FIRST`).toString().toUpperCase())
+
+      this.navigation.extraIdentificador = (`${this.itens[0][this.identificador]}-FIRST`).toString().toUpperCase()
       this.emitCurrentRegister(this.itens[0])
 
     }
@@ -1075,7 +1078,7 @@ const vm = new Vue({
           id: 4,
           nome: "7",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
+          sobrenome: "Kallyo1",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1086,7 +1089,7 @@ const vm = new Vue({
           id: 5,
           nome: "u",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
+          sobrenome: "Sampaio2",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1130,7 +1133,7 @@ const vm = new Vue({
           id: 9,
           nome: "Daniel",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
+          sobrenome: "Sampaio3",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1163,7 +1166,7 @@ const vm = new Vue({
           id: 12,
           nome: "Marcelo",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
+          sobrenome: "Kallyo3",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1174,7 +1177,7 @@ const vm = new Vue({
           id: 13,
           nome: "Daniel",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
+          sobrenome: "Sampaio4",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1207,7 +1210,7 @@ const vm = new Vue({
           id: 16,
           nome: "Marcelo",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
+          sobrenome: "Kallyo4",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1218,7 +1221,7 @@ const vm = new Vue({
           id: 17,
           nome: "Daniel",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
+          sobrenome: "Sampaio5",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1251,7 +1254,7 @@ const vm = new Vue({
           id: 20,
           nome: "Marcelo",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
+          sobrenome: "Kallyo5",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1262,7 +1265,7 @@ const vm = new Vue({
           id: 21,
           nome: "fd",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
+          sobrenome: "Sampaio6",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1295,7 +1298,7 @@ const vm = new Vue({
           id: 24,
           nome: "gf",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
+          sobrenome: "Kallyo6",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1306,7 +1309,7 @@ const vm = new Vue({
           id: 25,
           nome: "h",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
+          sobrenome: "Sampaio7",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1339,7 +1342,7 @@ const vm = new Vue({
           id: 28,
           nome: "oi",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
+          sobrenome: "Kallyo7",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1350,7 +1353,7 @@ const vm = new Vue({
           id: 29,
           nome: "lk",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Sampaio",
+          sobrenome: "Sampaio8",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
@@ -1383,7 +1386,7 @@ const vm = new Vue({
           id: 32,
           nome: "w",
           descricao: "Um simples teste de tamanho",
-          sobrenome: "Kallyo",
+          sobrenome: "Kallyo8",
           nascimento: "03/12/2001",
           texto: "Um pequeno passo para o homem, mas um grande salto para humanidade",
           data: "07/09",
