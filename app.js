@@ -35,7 +35,7 @@ Vue.component("form-table", {
       colunas: this.processar(this.fields),
       ordering: {order: null, column: null},
       columnsSelected: {indexes: [], hasSelection: false},
-      navigation: {navigationOn: false, row: 0, column: 0, key: null, extraIdentificador: null},
+      navigation: {navigationOn: false, row: 0, column: 0, key: null, extraIdentificador: null, otherSelection: false},
       selecao: {ativo: false, item: null, linha: 0, coluna: 0},
       resize: {started: false, colIndex: null, offset: null, width: null},
       filter: {hideRows: {}, column: {}, opened: false, allChecked: null},
@@ -366,7 +366,15 @@ Vue.component("form-table", {
       this.$set(this.navigation, "row", row);
       this.$set(this.navigation, "column", column);
       this.$set(this.navigation, "key", this.paginate.currentPageContent[row])
+      if (this.navigation.extraIdentificador) {
+        if (this.currentItemSelected[this.identificador] != this.paginate.currentPageContent[row][this.identificador]) {
+          
+          this.navigation.otherSelection = true
+        }
+      }
       this.currentItemSelected = this.paginate.currentPageContent[row]
+      console.log(this.navigation.otherSelection)
+
     },
     scrolling(to, direction) {
       if (direction == "right") this.table.scrollLeft += to;
@@ -999,15 +1007,10 @@ Vue.component("form-table", {
 
       //colocado como selecionado
       if (finded) {
-        console.log("finded: ", finded)
-        console.log("uppercase", (finded[this.identificador]).toString().toUpperCase())
        return this.navigation.extraIdentificador = (finded[this.identificador]).toString().toUpperCase()
       }
 
       //se não vamos emit o primeiro registro
-      console.log("emitando primeiro registro", this.itens[0])
-      console.log("upper case", (`${this.itens[0][this.identificador]}-FIRST`).toString().toUpperCase())
-
       this.navigation.extraIdentificador = (`${this.itens[0][this.identificador]}-FIRST`).toString().toUpperCase()
       this.emitCurrentRegister(this.itens[0])
 
