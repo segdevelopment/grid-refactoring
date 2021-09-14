@@ -41,7 +41,7 @@ Vue.component("form-table", {
       filter: {hideRows: {}, column: {}, opened: false, allChecked: null},
       paginate: {pages: 4, active: 1, allPages: null, rightShow: false, currentPageContent: null},
       draggable: {showIndicator: false, started: false, observer: null, newIndex: null, running: null, indicatorIndex: null, firstClientX: null},
-      currentItemSelected: {},
+      currentItemSelected: { },
       identificador: this.nomeColuna || ''
     }
   },
@@ -998,7 +998,7 @@ Vue.component("form-table", {
       let finded = this.itens.find(item => item[this.identificador] === this.currentItemSelected[this.identificador])
 
       //colocado como selecionado
-      if (finded){
+      if (finded) {
         console.log("finded: ", finded)
         console.log("uppercase", (finded[this.identificador]).toString().toUpperCase())
        return this.navigation.extraIdentificador = (finded[this.identificador]).toString().toUpperCase()

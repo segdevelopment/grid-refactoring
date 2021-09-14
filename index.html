@@ -67,7 +67,7 @@
                                     'form-table-div-row-body',
                                     {
                                         selected: (navigation.row === indiceLinha && navigation.navigationOn && !navigation.extraIdentificador)
-                                        || (navigation.extraIdentificador === item[nomeColuna]) || (navigation.extraIdentificador === `${item[nomeColuna]}-FIRST`),
+                                        || (navigation.extraIdentificador == item[nomeColuna]) || (navigation.extraIdentificador === `${item[nomeColuna]}-FIRST`),
                                         'customized-line-rendered': indiceLinha % 2 === 0
                                     }
                                 ]">
