@@ -57,6 +57,7 @@
                     </div>
                 </div>
                 <div class="form-table-div-body">
+                    {{navigation}}
                     <div v-for="(item, indiceLinha) in customItems"
                          :data-index='indiceLinha'
                          is="transition-group"
@@ -66,7 +67,7 @@
                                     'form-table-div-row-body',
                                     {
                                         selected: (navigation.row === indiceLinha && navigation.navigationOn && !navigation.extraIdentificador)
-                                        || (navigation.extraIdentificador === item.id) || (navigation.extraIdentificador === `${item.id}-FIRST`),
+                                        || (navigation.extraIdentificador === item[nomeColuna]) || (navigation.extraIdentificador === `${item[nomeColuna]}-FIRST`),
                                         'customized-line-rendered': indiceLinha % 2 === 0
                                     }
                                 ]">
