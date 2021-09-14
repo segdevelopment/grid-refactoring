@@ -65,7 +65,8 @@
                          :class="[
                                     'form-table-div-row-body',
                                     {
-                                        selected: (navigation.row === indiceLinha && navigation.navigationOn && !navigation.extraIdentificador) || (navigation.extraIdentificador === item.id) || (navigation.extraIdentificador === `${item.id}-FIRST`),
+                                        selected: (navigation.row === indiceLinha && navigation.navigationOn && !navigation.extraIdentificador)
+                                        || (navigation.extraIdentificador === item.id) || (navigation.extraIdentificador === `${item.id}-FIRST`),
                                         'customized-line-rendered': indiceLinha % 2 === 0
                                     }
                                 ]">

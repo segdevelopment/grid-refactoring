@@ -42,7 +42,7 @@ Vue.component("form-table", {
       paginate: {pages: 4, active: 1, allPages: null, rightShow: false, currentPageContent: null},
       draggable: {showIndicator: false, started: false, observer: null, newIndex: null, running: null, indicatorIndex: null, firstClientX: null},
       currentItemSelected: {},
-      identificador: this.nomeColuna
+      identificador: this.nomeColuna || ''
     }
   },
   watch: {
